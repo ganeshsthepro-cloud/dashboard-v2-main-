@@ -41,7 +41,7 @@ export default function App() {
             className={`nav-tab${activePage === "people" ? " nav-tab-active" : ""}`}
             onClick={() => setActivePage("people")}
           >
-            People
+            HRMS
           </button>
         </nav>
         <div className="header-actions">
