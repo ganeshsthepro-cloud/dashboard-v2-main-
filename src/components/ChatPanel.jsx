@@ -40,11 +40,15 @@ const buildAssistantReply = (question) => {
     : ''
 
   if (q.includes('top') || q.includes('insight') || q.includes('summary')) {
-    return `${sourcePrefix}Top AHCL FY25 insights:\n\n1. **Revenue:** ₹451.82 Cr\n2. **Gross Profit:** ₹229 Cr\n3. **EBITDA:** ₹58 Cr (12.88% margin)\n4. **PBT:** ₹69 Cr\n5. **PAT:** ₹51 Cr and **EPS:** ₹17.58/share`
+    return `${sourcePrefix}Top AHCL FY25 insights:\n\n1. **Revenue:** ₹451.82 Cr\n2. **Gross Profit:** ₹229 Cr\n3. **EBITDA (Earnings Before Interest, Tax, Depreciation and Amortization):** ₹58 Cr (12.88% margin)\n4. **PBT (Profit Before Tax):** ₹69 Cr\n5. **PAT (Profit After Tax):** ₹51 Cr and **EPS (Earnings Per Share):** ₹17.58/share`
   }
 
   if (q.includes('revenue') || q.includes('segment') || q.includes('mix')) {
-    return `${sourcePrefix}AHCL revenue mix used in dashboard:\n\n1. **OTC Products:** ₹290 Cr\n2. **Women\'s Hygiene:** ₹124 Cr\n3. **Beverages:** ₹36 Cr\n4. **Others & Other Income:** ₹2 Cr\n\nTotal = **₹452 Cr**.`
+    return `${sourcePrefix}AHCL revenue mix used in dashboard:\n\n1. **Over-The-Counter (OTC) Products:** ₹290 Cr\n2. **Women\'s Hygiene:** ₹124 Cr\n3. **Beverages:** ₹36 Cr\n4. **Others & Other Income:** ₹2 Cr\n\nTotal = **₹452 Cr**.`
+  }
+
+  if (q.includes('roce') || q.includes('return on capital employed') || q.includes('otc')) {
+    return `${sourcePrefix}Full-form KPI labels:\n\n1. **OTC:** Over-The-Counter\n2. **ROCE:** Return on Capital Employed\n3. **EPS:** Earnings Per Share\n4. **PBT:** Profit Before Tax\n5. **PAT:** Profit After Tax`
   }
 
   if (q.includes('ebitda') || q.includes('margin') || q.includes('profit')) {
@@ -55,7 +59,7 @@ const buildAssistantReply = (question) => {
     return `${sourcePrefix}Sankey corrections now applied:\n\n1. **Freight cost removed** as separate node (inside Other Expenses).\n2. **Women\'s Hygiene = ₹124 Cr**.\n3. **Others & Other Income = ₹2 Cr**.\n4. **Other Income ₹18 Cr** shown as separate inflow into PBT.\n5. **EPS labeled per share** as ₹17.58/share.`
   }
 
-  return `${sourcePrefix}I can answer AHCL FY25 questions on revenue mix, EBITDA/PAT bridge, Sankey flow, vision gap, and KPI trends. Try:\n\n1. **Explain PBT bridge**\n2. **Show margin drivers**\n3. **Summarize segment performance**`
+  return `${sourcePrefix}I could not find an exact rule-based answer for this question.\n\nThis chat is currently template-based. Connect your LLM API to get real dynamic responses from your uploaded sources.`
 }
 
 const Avatar = ({ role }) => (
