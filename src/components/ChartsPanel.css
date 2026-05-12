@@ -1,0 +1,337 @@
+.charts-panel {
+  background: #111114;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.charts-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.badge {
+  background: #1e1e2a;
+  color: #55556a;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* KPI */
+.insights-kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.insights-kpi-card {
+  background: #fff;
+  border: 1px solid #f0d372;
+  border-radius: 11px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 7px 15px rgba(164, 120, 0, 0.07);
+  min-height: 110px;
+}
+
+.insights-kpi-title {
+  font-size: 10.5px;
+  color: #7f6200;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.insights-kpi-value {
+  margin-top: 7px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #211800;
+  letter-spacing: -0.02em;
+}
+
+.insights-kpi-subtitle {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #8f6f00;
+  font-weight: 500;
+}
+
+.insights-kpi-subtitle.spacer {
+  opacity: 0;
+}
+
+@media (min-width: 700px) {
+  .insights-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Chart cards */
+.chart-card {
+  background: #141420;
+  border: 1px solid #1e1e2a;
+  border-radius: 10px;
+  padding: 14px 12px 10px;
+}
+
+.chart-card.clickable {
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.chart-card.clickable:hover {
+  border-color: #3d2d6a;
+  box-shadow: 0 0 0 3px #8b5cf610;
+}
+.chart-card.clickable:hover .expand-hint {
+  opacity: 1;
+}
+
+.chart-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.expand-hint {
+  color: #8b5cf6;
+  opacity: 0;
+  transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+}
+
+.chart-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7777aa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chart-tooltip {
+  background: #1a1a24;
+  border: 1px solid #2e2e3e;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #c8c8d8;
+}
+.tooltip-label {
+  font-weight: 600;
+  color: #e8e8ed;
+  margin-bottom: 4px;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  justify-content: center;
+  font-size: 11px;
+  color: #7777aa;
+}
+.chart-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.cashflow-sankey .recharts-text,
+.cashflow-sankey .recharts-label,
+.cashflow-sankey .recharts-sankey-node text,
+.cashflow-sankey .recharts-sankey-link text {
+  fill: #ffffff !important;
+}
+
+.cashflow-inline-list {
+  margin-top: 8px;
+  display: grid;
+  gap: 4px;
+}
+
+.cashflow-inline-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: #c9c9e0;
+  border: 1px solid #2a2a3a;
+  border-radius: 7px;
+  background: #181826;
+  padding: 5px 8px;
+}
+
+.cashflow-inline-row strong {
+  color: #ffffff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Pie layout */
+.pie-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.pie-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 8px;
+}
+
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+}
+
+.pie-name {
+  flex: 1;
+  color: #9999aa;
+}
+
+.pie-pct {
+  font-weight: 600;
+  color: #d0d0dc;
+}
+
+/* AI Insights card */
+.ai-insights-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-insights-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-insights-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #b9b9d6;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ai-insights-count {
+  font-size: 10px;
+  color: #8888aa;
+  border: 1px solid #303048;
+  background: #171724;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.finance-ai-card {
+  background: linear-gradient(145deg, #16102a, #131220);
+  border: 1px solid #3d2d6a;
+  border-top: 2px solid transparent;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 10px 24px rgba(38, 16, 78, 0.25);
+  position: relative;
+  background-clip: padding-box;
+}
+
+.finance-ai-card::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -1px;
+  right: -1px;
+  height: 3px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(90deg, #8b5cf6, #6366f1, #06b6d4);
+}
+
+.finance-ai-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.finance-ai-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #c4b5fd;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.finance-ai-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #fca5a5;
+  background: #3a1111;
+  border: 1px solid #7f1d1d;
+  border-radius: 6px;
+  padding: 3px 7px;
+  white-space: nowrap;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.finance-highlight {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fcd34d;
+}
+
+.finance-insight-copy {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #b8b6ce;
+}
+
+.runway-btn {
+  margin-top: 12px;
+  border: 1px solid #4c3080;
+  background: #2d1f55;
+  color: #d7ccff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.runway-btn:hover {
+  background: #3a2a70;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(40, 26, 76, 0.35);
+}

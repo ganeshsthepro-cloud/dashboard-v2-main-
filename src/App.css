@@ -1,0 +1,96 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0f0f10;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 52px;
+  border-bottom: 1px solid #1e1e24;
+  background: #111114;
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #e8e8ed;
+  letter-spacing: -0.01em;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.header-nav {
+  display: flex;
+  gap: 2px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.nav-tab {
+  background: transparent;
+  border: none;
+  color: #55556a;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.nav-tab:hover { color: #e8e8ed; background: #1a1a22; }
+.nav-tab-active { color: #e8e8ed; background: #1e1e2e; }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #2e2e38;
+  color: #9999aa;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-ghost:hover {
+  border-color: #44445a;
+  color: #e8e8ed;
+  background: #1a1a22;
+}
+
+.btn-primary {
+  background: #8b5cf6;
+  border: none;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: #7c3aed; }
+
+.panels {
+  display: grid;
+  grid-template-columns: 300px 1fr 360px;
+  flex: 1;
+  overflow: hidden;
+  gap: 0;
+}

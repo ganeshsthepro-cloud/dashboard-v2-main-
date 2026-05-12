@@ -1,0 +1,275 @@
+.cc-page {
+  background: #f9fafb;
+  min-height: calc(100vh - 52px);
+  overflow-y: auto;
+}
+
+.cc-titlebar {
+  background: #111827;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cc-titlebar-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #f9fafb;
+  letter-spacing: 0.02em;
+}
+
+.cc-body {
+  padding: 20px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Hero metrics */
+.cc-hero-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cc-hero-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 18px 24px 22px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.cc-hero-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 10px;
+}
+
+.cc-hero-value {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.cc-green { color: #16a34a; }
+.cc-red   { color: #dc2626; }
+
+/* KPI grid */
+.cc-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.cc-kpi-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 18px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cc-kpi-label {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+
+.cc-kpi-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+}
+
+.cc-kpi-delta {
+  font-size: 11.5px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.cc-pos { color: #16a34a; }
+.cc-neg { color: #9ca3af; }
+
+/* Charts row */
+.cc-charts-row {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 12px;
+}
+
+.cc-chart-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 16px 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cc-chart-full {
+  width: 100%;
+}
+
+.cc-chart-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 10px;
+}
+
+.cc-chart-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.cc-view-link {
+  font-size: 11px;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cc-updated {
+  font-size: 10.5px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Pie */
+.cc-pie-row {
+  display: flex;
+  align-items: center;
+}
+
+.cc-pie-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-left: 8px;
+}
+
+.cc-pie-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.cc-pie-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cc-pie-name {
+  flex: 1;
+  color: #374151;
+}
+
+.cc-pie-val {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Vision gap legend */
+.cc-vision-legend {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.cc-vision-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cc-legend-dash {
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: repeating-linear-gradient(
+    to right,
+    #ef4444 0,
+    #ef4444 5px,
+    transparent 5px,
+    transparent 8px
+  );
+}
+
+.cc-legend-line {
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: #3b82f6;
+  border-radius: 2px;
+}
+
+/* Gap analysis banner */
+.cc-gap-banner {
+  background: #fef9ec;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.cc-gap-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 4px;
+}
+
+.cc-gap-text {
+  font-size: 12px;
+  color: #78350f;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.cc-gap-text strong {
+  color: #92400e;
+  font-weight: 700;
+}
+
+/* Tooltip */
+.cc-tooltip {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cc-tooltip-label {
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
+@media (max-width: 900px) {
+  .cc-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .cc-charts-row { grid-template-columns: 1fr; }
+  .cc-hero-row { grid-template-columns: 1fr; }
+}
