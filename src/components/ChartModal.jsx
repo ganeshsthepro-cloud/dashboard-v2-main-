@@ -904,7 +904,12 @@ export default function ChartModal({ chart, onClose }) {
             {messages.map((m, i) => (
               <div key={i} className={`modal-msg modal-msg-${m.role}`}>
                 {m.role === "ai" && <span className="modal-ai-label">AI</span>}
-                <span className="modal-msg-text">{m.text}</span>
+                <span className="modal-msg-text">{
+                  m.text.split('\n').map((line, j) => {
+                    const html = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    return <p key={j} dangerouslySetInnerHTML={{ __html: html }} />;
+                  })
+                }</span>
               </div>
             ))}
             {loading && (

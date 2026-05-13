@@ -169,6 +169,10 @@
   border-radius: 8px 8px 8px 2px;
   border: 1px solid #007a75;
 }
+.modal-msg-text p {
+  margin: 0;
+  line-height: 1.5;
+}
 
 .modal-ai-label {
   font-size: 10px;
@@ -650,9 +654,20 @@
 .light .modal-input { color: #1A1A1A; }
 .light .modal-input::placeholder { color: #757575; }
 .light .modal-input-hint { color: #757575; }
-.light .modal-msg-user { background: #E8F5E9; color: #1A1A1A; }
-.light .modal-msg-ai { background: #F5F5F0; }
-.light .modal-msg-text { color: #1A1A1A; }
+.light .modal-chat-log { border-top-color: #E0E0D8; }
+.light .modal-msg-user { background: transparent; }
+.light .modal-msg-user .modal-msg-text {
+  background: #E8F5E9;
+  color: #1A1A1A;
+  border: 1px solid #C8E6C9;
+}
+.light .modal-msg-ai { background: transparent; }
+.light .modal-msg-ai .modal-msg-text {
+  background: #F5F5F0;
+  color: #1A1A1A;
+  border: 1px solid #E0E0D8;
+}
+.light .modal-ai-label { color: #2E7B34; }
 .light .modal-suggestion-btn {
   background: #F5F5F0;
   border-color: #E0E0D8;
