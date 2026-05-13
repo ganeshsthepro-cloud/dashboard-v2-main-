@@ -65,8 +65,9 @@
 }
 
 .avatar-assistant {
-  background: linear-gradient(135deg, #005a56, #00c4ba);
+  background: linear-gradient(135deg, #6F4E37, #A0785A);
   color: #fff;
+  box-shadow: 0 0 8px rgba(111, 78, 55, 0.5);
 }
 
 .avatar-user {
