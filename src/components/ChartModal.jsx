@@ -20,16 +20,27 @@ import {
   ReferenceLine,
   LabelList,
 } from "recharts";
+import { useTheme } from "../ThemeContext.jsx";
+import { askAI } from "../services/aiService.js";
 import "./ChartModal.css";
 
-const PIE_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#06b6d4"];
+const PIE_COLORS = ["#00c4ba", "#0091a7", "#005a56", "#80dbd8"];
 const FUNNEL_COLORS = [
-  "#8b5cf6",
-  "#7c66f1",
-  "#6f70ee",
-  "#5a7be8",
-  "#4688dd",
-  "#2f97d1",
+  "#00c4ba",
+  "#0091a7",
+  "#007a75",
+  "#005a56",
+  "#004a44",
+  "#003e39",
+];
+
+const COLOR_TEMPLATES = [
+  { name: "Brand", colors: ["#F5C200", "#2E7B34", "#C62828", "#1565C0", "#F57F00", "#6A1B9A"] },
+  { name: "Ocean", colors: ["#0077B6", "#00B4D8", "#90E0EF", "#023E8A", "#48CAE4", "#ADE8F4"] },
+  { name: "Sunset", colors: ["#FF6B35", "#F7C59F", "#EFEFD0", "#004E89", "#1A659E", "#FF9F1C"] },
+  { name: "Forest", colors: ["#2D6A4F", "#40916C", "#74C69D", "#1B4332", "#52B788", "#B7E4C7"] },
+  { name: "Berry", colors: ["#7B2CBF", "#9D4EDD", "#C77DFF", "#3C096C", "#E0AAFF", "#5A189A"] },
+  { name: "Warm", colors: ["#E63946", "#F4A261", "#E9C46A", "#264653", "#2A9D8F", "#8AB17D"] },
 ];
 
 const DRILLDOWN = {
@@ -84,16 +95,54 @@ const AI_REPLIES = [
   "Updated. Bar radius increased for a softer look.",
 ];
 
+const SANKEY_BLUE = "#7B9BD4";
+const SANKEY_PINK = "#F09898";
+
+const SANKEY_NODE_COLORS = {
+  "OTC Products":                    SANKEY_BLUE,
+  "Women's Hygiene":                 SANKEY_BLUE,
+  "Beverages":                       SANKEY_BLUE,
+  "Others & Other Income":           SANKEY_BLUE,
+  "Revenue":                         SANKEY_BLUE,
+  "Cost of Materials":               SANKEY_PINK,
+  "Gross Profit":                    SANKEY_PINK,
+  "Employee Cost":                   SANKEY_PINK,
+  "Advertising & Selling Exp.":      SANKEY_PINK,
+  "Other Expenses":                  SANKEY_PINK,
+  "EBITDA":                          SANKEY_BLUE,
+  "Depreciation & Amortization":     SANKEY_PINK,
+  "Other Income":                    SANKEY_BLUE,
+  "Profit Before Tax (PBT)":         SANKEY_BLUE,
+  "Tax":                             SANKEY_PINK,
+  "Profit After Tax (PAT)":          SANKEY_BLUE,
+  "EPS (₹17.58 per share)":          SANKEY_BLUE,
+};
+
+const SANKEY_SHORT_LABELS = {
+  "Others & Other Income":       "Others & OI",
+  "Advertising & Selling Exp.":  "Advt. & Selling",
+  "Depreciation & Amortization": "D&A",
+  "Profit Before Tax (PBT)":     "PBT",
+  "Profit After Tax (PAT)":      "PAT",
+  "EPS (₹17.58 per share)":      "EPS (₹17.58)",
+};
+
 const SankeyNodeWithLabel = ({ x, y, width, height, payload }) => {
-  const shortName = payload?.name?.split("·")?.[0]?.trim() ?? "";
+  const fullName = payload?.name?.split("·")?.[0]?.trim() ?? "";
+  const displayName = SANKEY_SHORT_LABELS[fullName] || fullName;
   const value = Number(payload?.value);
   let formattedValue = "";
   if (payload?.displayValue) {
     formattedValue = payload.displayValue;
   } else if (Number.isFinite(value)) {
-    const roundedValue = value % 1 === 0 ? value.toFixed(0) : value.toFixed(1);
-    formattedValue = `₹${roundedValue} Cr`;
+    formattedValue = `${value % 1 === 0 ? value.toFixed(0) : value.toFixed(1)} cr`;
   }
+
+  const nodeFill = SANKEY_NODE_COLORS[fullName] ?? "#0091a7";
+  const isRightSide = x > 700;
+  const labelX = isRightSide ? x - 8 : x + width + 8;
+  const anchor = isRightSide ? "end" : "start";
+  const midY = y + height / 2;
 
   return (
     <g>
@@ -102,29 +151,31 @@ const SankeyNodeWithLabel = ({ x, y, width, height, payload }) => {
         y={y}
         width={width}
         height={height}
-        rx={4}
-        fill="#8b5cf6"
-        fillOpacity={0.95}
-        stroke="#5a46a8"
+        rx={3}
+        fill={nodeFill}
+        fillOpacity={0.9}
+        stroke={nodeFill}
         strokeWidth={1}
       />
       <text
-        x={x + 5}
-        y={y + 12}
-        fill="#ffffff"
+        x={labelX}
+        y={midY - (formattedValue ? 5 : 0)}
+        fill="#1A1A1A"
         fontSize="10"
         fontWeight="600"
-        textAnchor="start"
+        textAnchor={anchor}
+        dominantBaseline="middle"
       >
-        {shortName}
+        {displayName}
       </text>
-      {height >= 24 && (
+      {formattedValue && (
         <text
-          x={x + 5}
-          y={y + 24}
-          fill="#e9e6ff"
+          x={labelX}
+          y={midY + 9}
+          fill="#555555"
           fontSize="9"
-          textAnchor="start"
+          textAnchor={anchor}
+          dominantBaseline="middle"
         >
           {formattedValue}
         </text>
@@ -133,12 +184,29 @@ const SankeyNodeWithLabel = ({ x, y, width, height, payload }) => {
   );
 };
 
+const SankeyColoredLink = (props) => {
+  const { payload, sourceX, targetX, sourceY, targetY, sourceControlX, targetControlX, linkWidth, index, ...rest } = props;
+  const targetName = payload?.target?.name || "";
+  const color = SANKEY_NODE_COLORS[targetName] || SANKEY_BLUE;
+  const halfWidth = (linkWidth || 1) / 2;
+  const path = `
+    M${sourceX},${sourceY + halfWidth}
+    C${sourceControlX},${sourceY + halfWidth} ${targetControlX},${targetY + halfWidth} ${targetX},${targetY + halfWidth}
+    L${targetX},${targetY - halfWidth}
+    C${targetControlX},${targetY - halfWidth} ${sourceControlX},${sourceY - halfWidth} ${sourceX},${sourceY - halfWidth}
+    Z
+  `;
+  return <path d={path} fill={color} fillOpacity={0.4} stroke="none" />;
+};
+
 export default function ChartModal({ chart, onClose }) {
+  const { colors: globalColors, colorTemplate, setColorTemplate, COLOR_TEMPLATES, mode } = useTheme();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeSlice, setActiveSlice] = useState(null);
   const [runwayStage, setRunwayStage] = useState(0);
+  const [chartType, setChartType] = useState(chart.id);
   const inputRef = useRef();
   const messagesEndRef = useRef();
 
@@ -172,22 +240,56 @@ export default function ChartModal({ chart, onClose }) {
     };
   }, [chart.id]);
 
-  const send = () => {
+  useEffect(() => {
+    setChartType(chart.id);
+    setActiveSlice(null);
+  }, [chart.id]);
+
+  const parseChartCommand = (text) => {
+    const lower = text.toLowerCase();
+    if (/\b(pie|donut|doughnut)\b/.test(lower)) return "pie";
+    if (/\b(line|trend)\b/.test(lower)) return "line";
+    if (/\b(bar|column|histogram)\b/.test(lower)) return "bar";
+    return null;
+  };
+
+  const send = async () => {
     const text = input.trim();
     if (!text || loading) return;
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    const newMessages = [...messages, { role: "user", text }];
+    setMessages(newMessages);
     setInput("");
     setLoading(true);
-    setTimeout(() => {
+
+    const requestedType = parseChartCommand(text);
+
+    if (requestedType && ["bar", "pie", "line"].includes(chart.id)) {
+      setChartType(requestedType);
+      const typeLabels = { bar: "bar chart", pie: "pie chart", line: "line chart" };
       setMessages((prev) => [
         ...prev,
-        {
-          role: "ai",
-          text: AI_REPLIES[Math.floor(Math.random() * AI_REPLIES.length)],
-        },
+        { role: "ai", text: `Done — switched to ${typeLabels[requestedType]}. You can ask me to change it again anytime.` },
       ]);
       setLoading(false);
-    }, 900);
+    } else {
+      try {
+        let dataSnippet;
+        try {
+          const d = Array.isArray(chart.data) ? chart.data.slice(0, 6) : { summary: chart.title };
+          dataSnippet = JSON.stringify(d);
+        } catch { dataSnippet = chart.title; }
+        const systemPrompt = `You are a helpful data analyst assistant for Amrutanjan Health Care Ltd dashboard. The user is viewing a chart titled "${chart.title}". The chart data: ${dataSnippet}. Answer concisely about the data, trends, or suggestions. You can also help change chart types (bar, pie, line). Keep answers short (2-4 sentences).`;
+        const reply = await askAI(newMessages, systemPrompt);
+        setMessages((prev) => [...prev, { role: "ai", text: reply }]);
+      } catch (err) {
+        console.error("ChartModal AI error:", err);
+        setMessages((prev) => [
+          ...prev,
+          { role: "ai", text: "Sorry, I couldn't reach the AI service. Please try again." },
+        ]);
+      }
+      setLoading(false);
+    }
   };
 
   const handleKey = (e) => {
@@ -204,67 +306,104 @@ export default function ChartModal({ chart, onClose }) {
   };
 
   const renderChart = () => {
-    if (chart.id === "bar") {
+    // For bar/pie/line charts, use dynamic chartType
+    const effectiveType = ["bar", "pie", "line"].includes(chart.id) ? chartType : chart.id;
+    const tplColors = globalColors;
+
+    if (effectiveType === "bar") {
+      // Render bar chart from any source data
+      const barData = chart.id === "pie"
+        ? chart.data.map((d) => ({ quarter: d.name, revenue: d.value }))
+        : chart.id === "line"
+        ? chart.data.map((d) => ({ quarter: d.year, revenue: d.otc, target: d.comfy }))
+        : chart.data;
+      const hasTarget = barData[0]?.target !== undefined;
       return (
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={chart.data}
+            data={barData}
             barGap={4}
             margin={{ top: 16, right: 24, bottom: 8, left: 0 }}
           >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="#1e1e2a"
-              vertical={false}
-            />
-            <XAxis
-              dataKey="month"
-              tick={{ fill: "#7777aa", fontSize: 13 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fill: "#7777aa", fontSize: 13 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ fill: "#ffffff06" }}
-            />
-            <Legend
-              wrapperStyle={{ paddingTop: 16, fontSize: 13, color: "#7777aa" }}
-            />
-            <Bar
-              dataKey="revenue"
-              fill="#8b5cf6"
-              radius={[4, 4, 0, 0]}
-              name="Revenue"
-            />
-            <Bar
-              dataKey="target"
-              fill="#2a2a3a"
-              radius={[4, 4, 0, 0]}
-              name="Target"
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
+            <XAxis dataKey="quarter" tick={{ fill: "#757575", fontSize: 13 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: "#757575", fontSize: 13 }} axisLine={false} tickLine={false} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(245,194,0,0.06)" }} />
+            <Legend wrapperStyle={{ paddingTop: 16, fontSize: 13 }} />
+            <Bar dataKey="revenue" fill={tplColors[0]} radius={[4, 4, 0, 0]} name="Revenue" />
+            {hasTarget && <Bar dataKey="target" fill={tplColors[1]} radius={[4, 4, 0, 0]} name="Target" />}
           </BarChart>
         </ResponsiveContainer>
       );
     }
-    if (chart.id === "pie") {
+
+    if (effectiveType === "pie") {
+      // Render pie chart from any source data
+      const pieData = chart.id === "bar"
+        ? chart.data.map((d) => ({ name: d.quarter, value: d.revenue }))
+        : chart.id === "line"
+        ? chart.data.map((d) => ({ name: d.year, value: d.otc }))
+        : chart.data;
+      const pieColors = tplColors;
       const drillData = activeSlice ? DRILLDOWN[activeSlice.name] : null;
       const sliceColor = activeSlice
-        ? PIE_COLORS[chart.data.findIndex((d) => d.name === activeSlice.name)]
-        : "#8b5cf6";
+        ? pieColors[pieData.findIndex((d) => d.name === activeSlice.name) % pieColors.length]
+        : pieColors[0];
+
+      const hasDrilldown = chart.id === "pie";
+
+      if (!hasDrilldown) {
+        // Simple full-width pie (no drill-down panel)
+        return (
+          <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <ResponsiveContainer width="100%" height="75%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="28%"
+                  outerRadius="60%"
+                  paddingAngle={4}
+                  dataKey="value"
+                  isAnimationActive
+                  animationDuration={500}
+                >
+                  {pieData.map((d, i) => (
+                    <Cell key={i} fill={pieColors[i % pieColors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(v) => `₹${v} Cr`}
+                  contentStyle={{
+                    background: "#FFFFFF",
+                    border: "1px solid #E0E0D8",
+                    borderRadius: 8,
+                    fontSize: 13,
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="pie-modal-legend">
+              {pieData.map((d, i) => (
+                <div key={i} className="pie-modal-legend-item">
+                  <span className="pie-modal-dot" style={{ background: pieColors[i % pieColors.length] }} />
+                  <span className="pie-modal-name">{d.name}</span>
+                  <span className="pie-modal-pct">{d.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
 
       return (
         <div className="pie-modal-layout">
-          {/* Pie side — shrinks to 30% when drill active */}
           <div className={`pie-modal-left ${activeSlice ? "pie-shrunk" : ""}`}>
             <ResponsiveContainer width="100%" height="75%">
               <PieChart>
                 <Pie
-                  data={chart.data}
+                  data={pieData}
                   cx="50%"
                   cy="50%"
                   innerRadius="28%"
@@ -276,16 +415,12 @@ export default function ChartModal({ chart, onClose }) {
                   isAnimationActive
                   animationDuration={500}
                 >
-                  {chart.data.map((d, i) => (
+                  {pieData.map((d, i) => (
                     <Cell
                       key={i}
-                      fill={PIE_COLORS[i]}
-                      opacity={
-                        activeSlice && activeSlice.name !== d.name ? 0.3 : 1
-                      }
-                      stroke={
-                        activeSlice?.name === d.name ? "#fff" : "transparent"
-                      }
+                      fill={pieColors[i % pieColors.length]}
+                      opacity={activeSlice && activeSlice.name !== d.name ? 0.3 : 1}
+                      stroke={activeSlice?.name === d.name ? "#fff" : "transparent"}
                       strokeWidth={2}
                     />
                   ))}
@@ -293,8 +428,8 @@ export default function ChartModal({ chart, onClose }) {
                 <Tooltip
                   formatter={(v) => `${v}%`}
                   contentStyle={{
-                    background: "#1a1a24",
-                    border: "1px solid #2e2e3e",
+                    background: "#FFFFFF",
+                    border: "1px solid #E0E0D8",
                     borderRadius: 8,
                     fontSize: 13,
                   }}
@@ -302,16 +437,13 @@ export default function ChartModal({ chart, onClose }) {
               </PieChart>
             </ResponsiveContainer>
             <div className="pie-modal-legend">
-              {chart.data.map((d, i) => (
+              {pieData.map((d, i) => (
                 <div
                   key={i}
                   className={`pie-modal-legend-item ${activeSlice?.name === d.name ? "active" : ""} ${activeSlice && activeSlice.name !== d.name ? "dimmed" : ""}`}
                   onClick={() => pickSlice(d)}
                 >
-                  <span
-                    className="pie-modal-dot"
-                    style={{ background: PIE_COLORS[i] }}
-                  />
+                  <span className="pie-modal-dot" style={{ background: pieColors[i % pieColors.length] }} />
                   <span className="pie-modal-name">{d.name}</span>
                   <span className="pie-modal-pct">{d.value}%</span>
                 </div>
@@ -321,11 +453,7 @@ export default function ChartModal({ chart, onClose }) {
               <p className="pie-click-hint">Click a slice to drill down</p>
             )}
           </div>
-
-          {/* Drill-down bar chart — slides in from right */}
-          <div
-            className={`pie-modal-right ${activeSlice ? "drill-visible" : ""}`}
-          >
+          <div className={`pie-modal-right ${activeSlice && drillData ? "drill-visible" : ""}`}>
             {drillData && (
               <>
                 <div className="drill-header">
@@ -358,19 +486,19 @@ export default function ChartModal({ chart, onClose }) {
                   >
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="#1e1e2a"
+                      stroke="#005a56"
                       horizontal={false}
                     />
                     <XAxis
                       type="number"
-                      tick={{ fill: "#7777aa", fontSize: 12 }}
+                      tick={{ fill: "#b0dbd9", fontSize: 12 }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis
                       type="category"
                       dataKey="label"
-                      tick={{ fill: "#aaaacc", fontSize: 13 }}
+                      tick={{ fill: "#d8f5f4", fontSize: 13 }}
                       axisLine={false}
                       tickLine={false}
                       width={72}
@@ -378,12 +506,12 @@ export default function ChartModal({ chart, onClose }) {
                     <Tooltip
                       formatter={(v) => [`${v}%`, "Share"]}
                       contentStyle={{
-                        background: "#1a1a24",
-                        border: "1px solid #2e2e3e",
+                        background: "#007a75",
+                        border: "1px solid #005a56",
                         borderRadius: 8,
                         fontSize: 13,
                       }}
-                      cursor={{ fill: "#ffffff06" }}
+                      cursor={{ fill: "#00c4ba10" }}
                     />
                     <Bar
                       dataKey="value"
@@ -403,56 +531,33 @@ export default function ChartModal({ chart, onClose }) {
         </div>
       );
     }
-    if (chart.id === "line") {
+    if (effectiveType === "line") {
+      // Render line chart from any source data
+      const lineData = chart.id === "bar"
+        ? chart.data.map((d) => ({ year: d.quarter, otc: d.revenue, comfy: d.target }))
+        : chart.id === "pie"
+        ? chart.data.map((d, i) => ({ year: d.name, otc: d.value, comfy: null }))
+        : chart.data;
+      const hasSecondLine = lineData[0]?.comfy != null;
       return (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={chart.data}
+            data={lineData}
             margin={{ top: 16, right: 24, bottom: 8, left: 0 }}
           >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="#1e1e2a"
-              vertical={false}
-            />
-            <XAxis
-              dataKey="week"
-              tick={{ fill: "#7777aa", fontSize: 13 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fill: "#7777aa", fontSize: 13 }}
-              axisLine={false}
-              tickLine={false}
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
+            <XAxis dataKey="year" tick={{ fill: "#757575", fontSize: 13 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: "#757575", fontSize: 13 }} axisLine={false} tickLine={false} />
             <Tooltip
-              contentStyle={{
-                background: "#1a1a24",
-                border: "1px solid #2e2e3e",
-                borderRadius: 8,
-                fontSize: 13,
-              }}
+              contentStyle={{ background: "#FFFFFF", border: "1px solid #E0E0D8", borderRadius: 8, fontSize: 13 }}
+              formatter={(v, name) => [`₹${v} Cr`, name === "otc" ? "OTC Net" : "Comfy"]}
             />
             <Legend
-              wrapperStyle={{ paddingTop: 16, fontSize: 13, color: "#7777aa" }}
+              wrapperStyle={{ paddingTop: 16, fontSize: 13 }}
+              formatter={(value) => value === "otc" ? "OTC Net" : "Comfy"}
             />
-            <Line
-              type="monotone"
-              dataKey="users"
-              stroke="#8b5cf6"
-              strokeWidth={2.5}
-              dot={{ fill: "#8b5cf6", r: 4 }}
-              name="Users"
-            />
-            <Line
-              type="monotone"
-              dataKey="sessions"
-              stroke="#06b6d4"
-              strokeWidth={2.5}
-              dot={{ fill: "#06b6d4", r: 4 }}
-              name="Sessions"
-            />
+            <Line type="monotone" dataKey="otc" stroke={tplColors[0]} strokeWidth={2.5} dot={{ fill: tplColors[0], r: 4 }} name="otc" />
+            {hasSecondLine && <Line type="monotone" dataKey="comfy" stroke={tplColors[1]} strokeWidth={2.5} dot={{ fill: tplColors[1], r: 4 }} name="comfy" />}
           </LineChart>
         </ResponsiveContainer>
       );
@@ -477,17 +582,17 @@ export default function ChartModal({ chart, onClose }) {
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="#1e1e2a"
+                  stroke="#005a56"
                   vertical={false}
                 />
                 <XAxis
                   dataKey="month"
-                  tick={{ fill: "#7777aa", fontSize: 12 }}
+                  tick={{ fill: "#b0dbd9", fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: "#7777aa", fontSize: 12 }}
+                  tick={{ fill: "#b0dbd9", fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -499,16 +604,16 @@ export default function ChartModal({ chart, onClose }) {
                       : "Collections received",
                   ]}
                   contentStyle={{
-                    background: "#1a1a24",
-                    border: "1px solid #2e2e3e",
+                    background: "#007a75",
+                    border: "1px solid #005a56",
                     borderRadius: 8,
                     fontSize: 13,
                   }}
-                  cursor={{ fill: "#ffffff06" }}
+                  cursor={{ fill: "#00c4ba08" }}
                 />
                 <Bar
                   dataKey="demandNotes"
-                  fill="#8b5cf6"
+                  fill="#00c4ba"
                   radius={[5, 5, 0, 0]}
                   name="demandNotes"
                   isAnimationActive
@@ -517,9 +622,9 @@ export default function ChartModal({ chart, onClose }) {
                 <Line
                   type="monotone"
                   dataKey="collections"
-                  stroke="#06b6d4"
+                  stroke="#E5A800"
                   strokeWidth={2.5}
-                  dot={{ fill: "#06b6d4", r: 3 }}
+                  dot={{ fill: "#E5A800", r: 3 }}
                   activeDot={{ r: 5 }}
                   name="collections"
                   isAnimationActive
@@ -529,7 +634,7 @@ export default function ChartModal({ chart, onClose }) {
                   wrapperStyle={{
                     paddingTop: 12,
                     fontSize: 12,
-                    color: "#9b9bc2",
+                    color: "#b0dbd9",
                   }}
                   formatter={(value) =>
                     value === "demandNotes"
@@ -557,12 +662,12 @@ export default function ChartModal({ chart, onClose }) {
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="#1e1e2a"
+                  stroke="#005a56"
                   vertical={false}
                 />
                 <XAxis
                   dataKey="project"
-                  tick={{ fill: "#7777aa", fontSize: 12 }}
+                  tick={{ fill: "#b0dbd9", fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
                   angle={-20}
@@ -570,24 +675,24 @@ export default function ChartModal({ chart, onClose }) {
                   height={54}
                 />
                 <YAxis
-                  tick={{ fill: "#7777aa", fontSize: 12 }}
+                  tick={{ fill: "#b0dbd9", fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "#1a1a24",
-                    border: "1px solid #2e2e3e",
+                    background: "#007a75",
+                    border: "1px solid #005a56",
                     borderRadius: 8,
                     fontSize: 13,
                   }}
-                  cursor={{ fill: "#ffffff06" }}
+                  cursor={{ fill: "#00c4ba08" }}
                   formatter={(value) => [`₹${value} Cr`, "FCF"]}
                 />
-                <ReferenceLine y={0} stroke="#44445a" strokeDasharray="4 4" />
+                <ReferenceLine y={0} stroke="#80c0be" strokeDasharray="4 4" />
                 <Bar
                   dataKey="fcf"
-                  fill="#8b5cf6"
+                  fill="#00c4ba"
                   radius={[5, 5, 0, 0]}
                   name="FCF"
                   isAnimationActive
@@ -597,7 +702,7 @@ export default function ChartModal({ chart, onClose }) {
             </ResponsiveContainer>
             <div className="runway-modal-legend">
               <span>
-                <span className="dot" style={{ background: "#8b5cf6" }} />
+                <span className="dot" style={{ background: "#00c4ba" }} />
                 FCF by project
               </span>
             </div>
@@ -630,8 +735,8 @@ export default function ChartModal({ chart, onClose }) {
                     <Tooltip
                       formatter={(value) => [`${value}%`, "Conversion"]}
                       contentStyle={{
-                        background: "#1a1a24",
-                        border: "1px solid #2e2e3e",
+                        background: "#007a75",
+                        border: "1px solid #005a56",
                         borderRadius: 8,
                         fontSize: 13,
                       }}
@@ -691,19 +796,19 @@ export default function ChartModal({ chart, onClose }) {
     if (chart.id === "cashflow") {
       return (
         <div className="runway-modal-layout">
-          <div className="runway-modal-chart visible">
+          <div className="runway-modal-chart visible" style={{ background: "#ffffff" }}>
             <div className="runway-modal-title-row">
-              <span className="runway-modal-title">AHCL FY 2024-25 Cash Flow Sankey</span>
+              <span className="runway-modal-title" style={{ color: "#1A1A1A" }}>AHCL FY 2024-25 Cash Flow Sankey</span>
               <span className="runway-modal-chip">Interactive Sankey</span>
             </div>
             <ResponsiveContainer width="100%" height={460}>
               <Sankey
                 className="cashflow-sankey"
                 data={chart.data}
-                nodePadding={24}
-                nodeWidth={92}
-                margin={{ top: 8, right: 12, bottom: 8, left: 12 }}
-                link={{ stroke: "#7c66f1", strokeOpacity: 0.3 }}
+                nodePadding={18}
+                nodeWidth={16}
+                margin={{ top: 8, right: 120, bottom: 8, left: 120 }}
+                link={<SankeyColoredLink />}
                 node={<SankeyNodeWithLabel />}
               >
                 <Tooltip
@@ -715,14 +820,14 @@ export default function ChartModal({ chart, onClose }) {
                     return [`₹${value} Cr`, "Flow"];
                   }}
                   contentStyle={{
-                    background: "#1a1a24",
-                    border: "1px solid #2e2e3e",
+                    background: "#FFFFFF",
+                    border: "1px solid #E0E0D8",
                     borderRadius: 8,
                     fontSize: 13,
-                    color: "#ffffff",
+                    color: "#1A1A1A",
                   }}
-                  itemStyle={{ color: "#ffffff" }}
-                  labelStyle={{ color: "#ffffff" }}
+                  itemStyle={{ color: "#1A1A1A" }}
+                  labelStyle={{ color: "#1A1A1A" }}
                 />
               </Sankey>
             </ResponsiveContainer>
@@ -748,12 +853,12 @@ export default function ChartModal({ chart, onClose }) {
                 width="18"
                 height="18"
                 rx="2"
-                stroke="#8b5cf6"
+                stroke="#00c4ba"
                 strokeWidth="2"
               />
               <path
                 d="M3 9h18M9 21V9"
-                stroke="#8b5cf6"
+                stroke="#00c4ba"
                 strokeWidth="2"
                 strokeLinecap="round"
               />
@@ -771,6 +876,24 @@ export default function ChartModal({ chart, onClose }) {
             </svg>
           </button>
         </div>
+
+        {/* Color template selector */}
+        {["bar", "pie", "line"].includes(chart.id) && (
+          <div className="modal-color-templates">
+            {COLOR_TEMPLATES.map((tpl, idx) => (
+              <button
+                key={idx}
+                className={`color-template-btn ${colorTemplate === idx ? "active" : ""}`}
+                onClick={() => setColorTemplate(idx)}
+                title={tpl.name}
+              >
+                {tpl.colors.slice(0, 4).map((c, ci) => (
+                  <span key={ci} className="color-template-dot" style={{ background: c }} />
+                ))}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Chart area */}
         <div className="modal-chart-area">{renderChart()}</div>
@@ -800,12 +923,22 @@ export default function ChartModal({ chart, onClose }) {
 
         {/* AI input */}
         <div className="modal-input-area">
+          {messages.length === 0 && (
+            <div className="modal-suggestions">
+              <button className="modal-suggestion-btn" onClick={() => { setInput("What insights can you give me from this chart?"); }}>
+                What insights can you give me from this chart?
+              </button>
+              <button className="modal-suggestion-btn" onClick={() => { setInput("Compare the highest and lowest values"); }}>
+                Compare the highest and lowest values
+              </button>
+            </div>
+          )}
           <div className="modal-input-wrapper">
             <div className="modal-input-icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                  stroke="#8b5cf6"
+                  stroke="#00c4ba"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"

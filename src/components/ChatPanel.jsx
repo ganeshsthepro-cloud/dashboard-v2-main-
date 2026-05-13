@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { askAI } from '../services/aiService.js'
 import './ChatPanel.css'
 
 const STORAGE_KEY = 'datamocha-source-files'
@@ -106,24 +107,39 @@ export default function ChatPanel() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
-  const send = () => {
+  const send = async () => {
     const text = input.trim()
     if (!text || loading) return
 
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    setMessages(prev => [...prev, { id: Date.now(), role: 'user', text, time: now }])
+    const userMsg = { id: Date.now(), role: 'user', text, time: now }
+    const newMessages = [...messages, userMsg]
+    setMessages(newMessages)
     setInput('')
     setLoading(true)
 
-    setTimeout(() => {
+    try {
+      const systemPrompt = `You are a helpful data analyst assistant for Amrutanjan Health Care Ltd (AHCL). You have access to FY25 financial data: Revenue ₹451.82 Cr, Gross Profit ₹229 Cr, EBITDA ₹58 Cr (12.88%), PBT ₹69 Cr, PAT ₹51 Cr, EPS ₹17.58/share. Segments: OTC ₹290 Cr, Women's Hygiene ₹124 Cr, Beverages ₹36 Cr. ROCE 21.44%. Answer concisely and helpfully. Use markdown bold for emphasis.`
+      const chatHistory = newMessages.filter(m => m.role === 'user' || m.role === 'assistant').map(m => ({
+        role: m.role === 'assistant' ? 'ai' : 'user',
+        text: m.text,
+      }))
+      const reply = await askAI(chatHistory, systemPrompt)
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        role: 'assistant',
+        text: reply,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }])
+    } catch (err) {
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         role: 'assistant',
         text: buildAssistantReply(text),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       }])
-      setLoading(false)
-    }, 1200)
+    }
+    setLoading(false)
   }
 
   const handleKey = (e) => {

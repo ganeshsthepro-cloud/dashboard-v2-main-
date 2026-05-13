@@ -14,8 +14,47 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useTheme } from "../ThemeContext.jsx";
 import ChartModal from "./ChartModal.jsx";
 import "./ChartsPanel.css";
+
+const SANKEY_BLUE = "#7B9BD4";
+const SANKEY_PINK = "#F09898";
+
+const SANKEY_NODE_COLORS_PANEL = {
+  "OTC Products": SANKEY_BLUE,
+  "Women's Hygiene": SANKEY_BLUE,
+  "Beverages": SANKEY_BLUE,
+  "Others & Other Income": SANKEY_BLUE,
+  "Revenue": SANKEY_BLUE,
+  "Cost of Materials": SANKEY_PINK,
+  "Gross Profit": SANKEY_PINK,
+  "Employee Cost": SANKEY_PINK,
+  "Advertising & Selling Exp.": SANKEY_PINK,
+  "Other Expenses": SANKEY_PINK,
+  "EBITDA": SANKEY_BLUE,
+  "Depreciation & Amortization": SANKEY_PINK,
+  "Other Income": SANKEY_BLUE,
+  "Profit Before Tax (PBT)": SANKEY_BLUE,
+  "Tax": SANKEY_PINK,
+  "Profit After Tax (PAT)": SANKEY_BLUE,
+  "EPS (₹17.58 per share)": SANKEY_BLUE,
+};
+
+const SankeyPanelLink = (props) => {
+  const { payload, sourceX, targetX, sourceY, targetY, sourceControlX, targetControlX, linkWidth, index, ...rest } = props;
+  const targetName = payload?.target?.name || "";
+  const color = SANKEY_NODE_COLORS_PANEL[targetName] || SANKEY_BLUE;
+  const halfWidth = (linkWidth || 1) / 2;
+  const path = `
+    M${sourceX},${sourceY + halfWidth}
+    C${sourceControlX},${sourceY + halfWidth} ${targetControlX},${targetY + halfWidth} ${targetX},${targetY + halfWidth}
+    L${targetX},${targetY - halfWidth}
+    C${targetControlX},${targetY - halfWidth} ${sourceControlX},${sourceY - halfWidth} ${sourceX},${sourceY - halfWidth}
+    Z
+  `;
+  return <path d={path} fill={color} fillOpacity={0.4} stroke="none" />;
+};
 
 const revenueData = [
   { quarter: "Q1 FY25", revenue: 102, target: 113 },
@@ -41,7 +80,7 @@ const trendsData = [
   { year: "FY25", otc: 278, comfy: 128 },
 ];
 
-const PIE_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#06b6d4"];
+const PIE_COLORS = ["#00c4ba", "#0091a7", "#005a56", "#80dbd8"];
 
 const KPI_CARDS = [
   { title: "OTC gross margin", value: "55.24%", subtitle: "−870bp vs FY16" },
@@ -137,6 +176,11 @@ const ExpandIcon = () => (
 
 export default function ChartsPanel() {
   const [activeChart, setActiveChart] = useState(null);
+  const { colors, mode } = useTheme();
+  const gridColor = mode === "light" ? "rgba(0,0,0,0.08)" : "#005a56";
+  const tickColor = mode === "light" ? "#757575" : "#b0dbd9";
+  const tooltipBg = mode === "light" ? "#FFFFFF" : "#007a75";
+  const tooltipBorder = mode === "light" ? "#E0E0D8" : "#005a56";
 
   const openChart = (chartId) =>
     setActiveChart(CHARTS.find((c) => c.id === chartId));
@@ -187,33 +231,33 @@ export default function ChartsPanel() {
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="#1e1e2a"
+                  stroke={gridColor}
                   vertical={false}
                 />
                 <XAxis
                   dataKey="quarter"
-                  tick={{ fill: "#55556a", fontSize: 11 }}
+                  tick={{ fill: tickColor, fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: "#55556a", fontSize: 11 }}
+                  tick={{ fill: tickColor, fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip
                   content={<CustomTooltip />}
-                  cursor={{ fill: "#ffffff08" }}
+                  cursor={{ fill: "rgba(0,0,0,0.04)" }}
                 />
                 <Bar
                   dataKey="revenue"
-                  fill="#8b5cf6"
+                  fill={colors[0]}
                   radius={[3, 3, 0, 0]}
                   name="revenue"
                 />
                 <Bar
                   dataKey="target"
-                  fill="#2a2a3a"
+                  fill={colors[1]}
                   radius={[3, 3, 0, 0]}
                   name="target"
                 />
@@ -221,14 +265,11 @@ export default function ChartsPanel() {
             </ResponsiveContainer>
             <div className="chart-legend">
               <span>
-                <span className="dot" style={{ background: "#8b5cf6" }} />
+                <span className="dot" style={{ background: colors[0] }} />
                 Revenue
               </span>
               <span>
-                <span
-                  className="dot"
-                  style={{ background: "#2a2a3a", border: "1px solid #44445a" }}
-                />
+                <span className="dot" style={{ background: colors[1] }} />
                 Target
               </span>
             </div>
@@ -258,14 +299,14 @@ export default function ChartsPanel() {
                     dataKey="value"
                   >
                     {categoryData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i]} />
+                      <Cell key={i} fill={colors[i % colors.length]} />
                     ))}
                   </Pie>
                   <Tooltip
                     formatter={(v) => `${v}%`}
                     contentStyle={{
-                      background: "#1a1a24",
-                      border: "1px solid #2e2e3e",
+                      background: tooltipBg,
+                      border: `1px solid ${tooltipBorder}`,
                       borderRadius: 8,
                       fontSize: 12,
                     }}
@@ -277,7 +318,7 @@ export default function ChartsPanel() {
                   <div key={i} className="pie-legend-item">
                     <span
                       className="dot"
-                      style={{ background: PIE_COLORS[i] }}
+                      style={{ background: colors[i % colors.length] }}
                     />
                     <span className="pie-name">{d.name}</span>
                     <span className="pie-pct">{d.value}%</span>
@@ -368,24 +409,24 @@ export default function ChartsPanel() {
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="#1e1e2a"
+                  stroke={gridColor}
                   vertical={false}
                 />
                 <XAxis
                   dataKey="year"
-                  tick={{ fill: "#55556a", fontSize: 11 }}
+                  tick={{ fill: tickColor, fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: "#55556a", fontSize: 11 }}
+                  tick={{ fill: tickColor, fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "#1a1a24",
-                    border: "1px solid #2e2e3e",
+                    background: tooltipBg,
+                    border: `1px solid ${tooltipBorder}`,
                     borderRadius: 8,
                     fontSize: 12,
                   }}
@@ -393,28 +434,28 @@ export default function ChartsPanel() {
                 <Line
                   type="monotone"
                   dataKey="otc"
-                  stroke="#8b5cf6"
+                  stroke={colors[0]}
                   strokeWidth={2}
-                  dot={{ fill: "#8b5cf6", r: 3 }}
+                  dot={{ fill: colors[0], r: 3 }}
                   name="OTC Net"
                 />
                 <Line
                   type="monotone"
                   dataKey="comfy"
-                  stroke="#06b6d4"
+                  stroke={colors[1]}
                   strokeWidth={2}
-                  dot={{ fill: "#06b6d4", r: 3 }}
+                  dot={{ fill: colors[1], r: 3 }}
                   name="Comfy"
                 />
               </LineChart>
             </ResponsiveContainer>
             <div className="chart-legend">
               <span>
-                <span className="dot" style={{ background: "#8b5cf6" }} />
+                <span className="dot" style={{ background: colors[0] }} />
                 OTC Net
               </span>
               <span>
-                <span className="dot" style={{ background: "#06b6d4" }} />
+                <span className="dot" style={{ background: colors[1] }} />
                 Comfy
               </span>
             </div>
@@ -423,9 +464,10 @@ export default function ChartsPanel() {
           <div
             className="chart-card clickable"
             onClick={() => openChart("cashflow")}
+            style={{ background: "#ffffff" }}
           >
             <div className="chart-title-row">
-              <span className="chart-title">AHCL FY 2024-25 Cash Flow Sankey</span>
+              <span className="chart-title" style={{ color: "#1A1A1A" }}>AHCL FY 2024-25 Cash Flow Sankey</span>
               <span className="expand-hint">
                 <ExpandIcon />
               </span>
@@ -434,27 +476,27 @@ export default function ChartsPanel() {
               <Sankey
                 className="cashflow-sankey"
                 data={CASH_FLOW_SANKEY_DATA}
-                nodePadding={16}
-                nodeWidth={12}
-                link={{ stroke: "#7c66f1", strokeOpacity: 0.3 }}
+                nodePadding={12}
+                nodeWidth={10}
+                link={<SankeyPanelLink />}
                 node={{
-                  stroke: "#5a46a8",
-                  strokeWidth: 1,
-                  fill: "#8b5cf6",
-                  fillOpacity: 0.92,
+                  stroke: "none",
+                  strokeWidth: 0,
+                  fill: SANKEY_BLUE,
+                  fillOpacity: 0.85,
                 }}
               >
                 <Tooltip
                   formatter={(value) => [`₹${value} Cr`, "Flow"]}
                   contentStyle={{
-                    background: "#1a1a24",
-                    border: "1px solid #2e2e3e",
+                    background: "#FFFFFF",
+                    border: "1px solid #E0E0D8",
                     borderRadius: 8,
                     fontSize: 12,
-                    color: "#ffffff",
+                    color: "#1A1A1A",
                   }}
-                  itemStyle={{ color: "#ffffff" }}
-                  labelStyle={{ color: "#ffffff" }}
+                  itemStyle={{ color: "#1A1A1A" }}
+                  labelStyle={{ color: "#1A1A1A" }}
                 />
               </Sankey>
             </ResponsiveContainer>

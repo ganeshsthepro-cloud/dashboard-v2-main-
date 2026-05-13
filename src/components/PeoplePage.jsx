@@ -12,6 +12,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useTheme } from "../ThemeContext.jsx";
 import "./PeoplePage.css";
 
 const AGE_PROFILE_DATA = [
@@ -20,7 +21,7 @@ const AGE_PROFILE_DATA = [
   { name: "40-49 yrs", value: 32 },
   { name: "50+ yrs", value: 15 },
 ];
-const AGE_COLORS = ["#1e3a5f", "#3b82f6", "#f59e0b", "#94a3b8"];
+const AGE_COLORS = ["#F5C200", "#2E7B34", "#1565C0", "#C62828"];
 
 const HRMS_DATA = [
   { system: "ePOD (Proof of...)", pct: 100 },
@@ -33,7 +34,7 @@ const HRMS_DATA = [
   { system: "AI/ML core team", pct: 30 },
 ];
 
-const HRMS_COLORS = (pct) => (pct === 100 ? "#15803d" : "#a16207");
+const HRMS_COLORS = (pct) => (pct === 100 ? "#2E7B34" : "#F5C200");
 
 const ENGAGEMENT_DATA = [
   { year: "2017", score: 22 },
@@ -51,7 +52,7 @@ const PpTooltip = ({ active, payload, label }) => {
     <div className="pp-tooltip">
       {label && <p className="pp-tooltip-label">{label}</p>}
       {payload.map((p, i) => (
-        <p key={i} style={{ color: p.color || "#374151" }}>
+        <p key={i} style={{ color: p.color || "#1A1A1A" }}>
           {p.name}: <strong>{p.value}{p.name === "Implementation %" ? "%" : ""}</strong>
         </p>
       ))}
@@ -60,6 +61,7 @@ const PpTooltip = ({ active, payload, label }) => {
 };
 
 export default function PeoplePage() {
+  const { colors } = useTheme();
   return (
     <div className="pp-page">
       {/* Top KPIs */}
@@ -99,16 +101,17 @@ export default function PeoplePage() {
                   dataKey="value"
                 >
                   {AGE_PROFILE_DATA.map((_, i) => (
-                    <Cell key={i} fill={AGE_COLORS[i]} />
+                    <Cell key={i} fill={colors[i % colors.length]} />
                   ))}
                 </Pie>
                 <Tooltip
                   formatter={(v) => `${v}%`}
                   contentStyle={{
-                    background: "#fff",
-                    border: "1px solid #e5e7eb",
+                    background: "#FFFFFF",
+                    border: "1px solid #E0E0D8",
                     borderRadius: 8,
                     fontSize: 12,
+                    color: "#1A1A1A",
                   }}
                 />
               </PieChart>
@@ -118,7 +121,7 @@ export default function PeoplePage() {
                 <div key={i} className="pp-pie-item">
                   <span
                     className="pp-pie-dot"
-                    style={{ background: AGE_COLORS[i] }}
+                    style={{ background: colors[i % colors.length] }}
                   />
                   <span className="pp-pie-name">{d.name}</span>
                   <span className="pp-pie-pct">{d.value} %</span>
@@ -143,31 +146,31 @@ export default function PeoplePage() {
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="#e5e7eb"
+                stroke="rgba(0,0,0,0.06)"
                 horizontal={false}
               />
               <XAxis
                 type="number"
                 domain={[0, 100]}
-                tick={{ fill: "#6b7280", fontSize: 10 }}
+                tick={{ fill: "#757575", fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 type="category"
                 dataKey="system"
-                tick={{ fill: "#374151", fontSize: 10 }}
+                tick={{ fill: "#1A1A1A", fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
                 width={118}
               />
               <Tooltip
                 content={<PpTooltip />}
-                cursor={{ fill: "#f3f4f6" }}
+                cursor={{ fill: "rgba(245,194,0,0.08)" }}
               />
               <Bar dataKey="pct" radius={[0, 3, 3, 0]} name="Implementation %">
                 {HRMS_DATA.map((d, i) => (
-                  <Cell key={i} fill={HRMS_COLORS(d.pct)} />
+                  <Cell key={i} fill={d.pct === 100 ? colors[1] : colors[0]} />
                 ))}
               </Bar>
             </BarChart>
@@ -191,34 +194,35 @@ export default function PeoplePage() {
           >
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#e5e7eb"
+              stroke="rgba(0,0,0,0.06)"
               vertical={false}
             />
             <XAxis
               dataKey="year"
-              tick={{ fill: "#6b7280", fontSize: 10 }}
+              tick={{ fill: "#757575", fontSize: 10 }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               domain={[0, 90]}
-              tick={{ fill: "#6b7280", fontSize: 10 }}
+              tick={{ fill: "#757575", fontSize: 10 }}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
               contentStyle={{
-                background: "#fff",
-                border: "1px solid #e5e7eb",
+                background: "#FFFFFF",
+                border: "1px solid #E0E0D8",
                 borderRadius: 8,
                 fontSize: 12,
+                color: "#1A1A1A",
               }}
             />
             <Area
               type="monotone"
               dataKey="score"
-              stroke="#f97316"
-              fill="#fed7aa"
+              stroke={colors[1]}
+              fill={`${colors[1]}14`}
               strokeWidth={2}
               name="Engagement Score"
             />

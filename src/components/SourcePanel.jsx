@@ -5,7 +5,7 @@ const ACCEPTED_TYPES = ['.pdf', '.txt', '.csv', '.json', '.md', '.docx']
 const STORAGE_KEY = 'datamocha-source-files'
 
 const FileIcon = ({ type }) => {
-  const colors = { pdf: '#ef4444', csv: '#22c55e', json: '#f59e0b', txt: '#60a5fa', md: '#a78bfa', docx: '#3b82f6' }
+  const colors = { pdf: '#fc5252', csv: '#22c55e', json: '#E5A800', txt: '#60a5fa', md: '#a78bfa', docx: '#3b82f6' }
   const color = colors[type] || '#9999aa'
   return (
     <div className="file-icon" style={{ '--icon-color': color }}>

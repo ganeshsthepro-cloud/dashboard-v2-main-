@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Cup body -->
+  <path d="M12 28 C12 28 10 52 16 54 C22 56 38 56 44 54 C50 52 48 28 48 28 Z" fill="none" stroke="#8B5E3C" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Cup handle (D shape) -->
+  <path d="M48 32 C56 32 58 40 56 44 C54 48 48 48 48 46" fill="none" stroke="#8B5E3C" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Bar chart inside cup -->
+  <rect x="20" y="40" width="4" height="10" rx="1" fill="#D4880F"/>
+  <rect x="26" y="36" width="4" height="14" rx="1" fill="#C87A0A"/>
+  <rect x="32" y="38" width="4" height="12" rx="1" fill="#D4880F"/>
+  <rect x="38" y="34" width="4" height="16" rx="1" fill="#C87A0A"/>
+  <!-- Rising chart line (steam) -->
+  <polyline points="16,26 22,20 28,24 34,16 40,18 46,10" stroke="#8B5E3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Arrow tip -->
+  <polyline points="42,8 46,10 44,14" stroke="#8B5E3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Saucer/base line -->
+  <path d="M8 56 Q30 60 52 56" stroke="#8B5E3C" stroke-width="2" stroke-linecap="round" fill="none"/>
+</svg>

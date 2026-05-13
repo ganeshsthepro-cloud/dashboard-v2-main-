@@ -1,6 +1,6 @@
 .source-panel {
-  background: #111114;
-  border-right: 1px solid #1e1e24;
+  background: #003651;
+  border-right: 1px solid #005a56;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -17,14 +17,14 @@
 .panel-title {
   font-size: 13px;
   font-weight: 600;
-  color: #9999aa;
+  color: #E5A800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
 .source-count {
-  background: #2a2a35;
-  color: #9999aa;
+  background: #005a56;
+  color: #b0dbd9;
   font-size: 11px;
   font-weight: 600;
   padding: 2px 7px;
@@ -33,29 +33,29 @@
 
 .drop-zone {
   margin: 0 12px 12px;
-  border: 1.5px dashed #2e2e3a;
+  border: 1.5px dashed #007a75;
   border-radius: 10px;
   padding: 20px 16px;
   text-align: center;
   cursor: pointer;
   transition: all 0.15s;
-  background: #0d0d10;
+  background: #002d45;
   flex-shrink: 0;
 }
 
 .drop-zone:hover,
 .drop-zone.dragging {
-  border-color: #8b5cf6;
-  background: #1a1020;
+  border-color: #00c4ba;
+  background: #007a75;
 }
 
 .drop-icon {
-  color: #44445a;
+  color: #80c0be;
   margin-bottom: 8px;
 }
 .drop-zone:hover .drop-icon,
 .drop-zone.dragging .drop-icon {
-  color: #8b5cf6;
+  color: #00c4ba;
 }
 
 .drop-title {
@@ -90,7 +90,7 @@
 }
 
 .file-item:hover {
-  background: #1a1a22;
+  background: #007a75;
 }
 
 .file-icon {
@@ -98,7 +98,7 @@
   height-min: 32px;
   height: 32px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--icon-color) 12%, #1a1a22);
+  background: color-mix(in srgb, var(--icon-color) 12%, #007a75);
   color: var(--icon-color);
   display: flex;
   align-items: center;
@@ -146,7 +146,7 @@
 }
 
 .file-item:hover .file-remove { opacity: 1; }
-.file-remove:hover { color: #ef4444; background: #2a1820; }
+.file-remove:hover { color: #fc5252; background: #2a1820; }
 
 .empty-hint {
   text-align: center;
@@ -154,3 +154,18 @@
   color: #44445a;
   padding: 20px;
 }
+
+/* ===== LIGHT MODE ===== */
+.light .source-panel {
+  background: #FFFFFF;
+  border-right: 1px solid #E0E0D8;
+}
+.light .panel-title { color: #1A1A1A; }
+.light .source-count { background: #E8F5E9; color: #2E7B34; }
+.light .file-group-label { color: #757575; border-bottom-color: #E0E0D8; }
+.light .file-name { color: #1A1A1A; }
+.light .file-size { color: #757575; }
+.light .file-item { border-bottom-color: #F0F0EA; }
+.light .file-item:hover { background: #F5F5F0; }
+.light .file-remove:hover { color: #C62828; background: #FFEBEE; }
+.light .empty-hint { color: #757575; }

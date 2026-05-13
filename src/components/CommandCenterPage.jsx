@@ -12,6 +12,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useTheme } from "../ThemeContext.jsx";
 import "./CommandCenterPage.css";
 
 const REVENUE_JOURNEY_DATA = [
@@ -47,7 +48,7 @@ const VISION_GAP_DATA = [
   { year: "FY25", actual: 452, vision: 1032 },
 ];
 
-const MIX_COLORS = ["#2563eb", "#16a34a", "#dc2626", "#312e81"];
+const MIX_COLORS = ["#F5C200", "#2E7B34", "#C62828", "#1565C0"];
 
 const KPI_CARDS = [
   { label: "Net revenue Operations", value: "₹451.82 Cr", delta: "+7.3% YoY", positive: true },
@@ -64,7 +65,7 @@ const CcTooltip = ({ active, payload, label }) => {
     <div className="cc-tooltip">
       {label && <p className="cc-tooltip-label">{label}</p>}
       {payload.map((p, i) => (
-        <p key={i} style={{ color: p.color || "#374151" }}>
+        <p key={i} style={{ color: p.color || "#1A1A1A" }}>
           {p.name}: <strong>₹{p.value} Cr</strong>
         </p>
       ))}
@@ -73,6 +74,7 @@ const CcTooltip = ({ active, payload, label }) => {
 };
 
 export default function CommandCenterPage() {
+  const { colors } = useTheme();
   return (
     <div className="cc-page">
       <div className="cc-titlebar">
@@ -85,10 +87,12 @@ export default function CommandCenterPage() {
           <div className="cc-hero-card">
             <p className="cc-hero-label">NORTH STAR METRIC</p>
             <p className="cc-hero-value cc-green">₹509.68 Cr</p>
+            <span className="cc-hero-badge">Pure Healthy Essence · Since 1893</span>
           </div>
           <div className="cc-hero-card">
             <p className="cc-hero-label">EBITDA margin</p>
             <p className="cc-hero-value cc-red">12.88%</p>
+            <p className="cc-hero-sub">FY2025 Reported</p>
           </div>
         </div>
 
@@ -119,47 +123,47 @@ export default function CommandCenterPage() {
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="#e5e7eb"
+                  stroke="rgba(0,0,0,0.06)"
                   vertical={false}
                 />
                 <XAxis
                   dataKey="year"
-                  tick={{ fill: "#6b7280", fontSize: 10 }}
+                  tick={{ fill: "#757575", fontSize: 10 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: "#6b7280", fontSize: 10 }}
+                  tick={{ fill: "#757575", fontSize: 10 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip content={<CcTooltip />} />
                 <Bar
                   dataKey="revenue"
-                  fill="#93c5fd"
-                  radius={[2, 2, 0, 0]}
+                  fill={colors[0]}
+                  radius={[4, 4, 0, 0]}
                   name="Net Revenue"
                 />
                 <Line
                   type="monotone"
                   dataKey="comfy"
-                  stroke="#16a34a"
-                  strokeWidth={1.5}
+                  stroke={colors[1]}
+                  strokeWidth={2}
                   dot={false}
                   name="Comfy"
                 />
                 <Line
                   type="monotone"
                   dataKey="beverage"
-                  stroke="#dc2626"
-                  strokeWidth={1.5}
+                  stroke={colors[2]}
+                  strokeWidth={2}
                   dot={false}
                   name="Beverage"
                 />
                 <Line
                   type="monotone"
                   dataKey="ecomm"
-                  stroke="#7c3aed"
+                  stroke={colors[3]}
                   strokeWidth={1.5}
                   dot={false}
                   name="E-Comm"
@@ -188,14 +192,14 @@ export default function CommandCenterPage() {
                     dataKey="value"
                   >
                     {REVENUE_MIX_DATA.map((_, i) => (
-                      <Cell key={i} fill={MIX_COLORS[i]} />
+                      <Cell key={i} fill={colors[i % colors.length]} />
                     ))}
                   </Pie>
                   <Tooltip
                     formatter={(v) => `₹${v} Cr`}
                     contentStyle={{
-                      background: "#fff",
-                      border: "1px solid #e5e7eb",
+                      background: "#FFFFFF",
+                      border: "1px solid #E0E0D8",
                       borderRadius: 8,
                       fontSize: 12,
                     }}
@@ -207,7 +211,7 @@ export default function CommandCenterPage() {
                   <div key={i} className="cc-pie-item">
                     <span
                       className="cc-pie-dot"
-                      style={{ background: MIX_COLORS[i] }}
+                      style={{ background: colors[i % colors.length] }}
                     />
                     <span className="cc-pie-name">{d.name}</span>
                     <span className="cc-pie-val">{d.value} Cr</span>
@@ -244,25 +248,25 @@ export default function CommandCenterPage() {
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="#e5e7eb"
+                stroke="rgba(0,0,0,0.06)"
                 vertical={false}
               />
               <XAxis
                 dataKey="year"
-                tick={{ fill: "#6b7280", fontSize: 10 }}
+                tick={{ fill: "#757575", fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fill: "#6b7280", fontSize: 10 }}
+                tick={{ fill: "#757575", fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
                 domain={[0, 1200]}
               />
               <Tooltip
                 contentStyle={{
-                  background: "#fff",
-                  border: "1px solid #e5e7eb",
+                  background: "#FFFFFF",
+                  border: "1px solid #E0E0D8",
                   borderRadius: 8,
                   fontSize: 12,
                 }}
@@ -270,9 +274,9 @@ export default function CommandCenterPage() {
               <Line
                 type="monotone"
                 dataKey="vision"
-                stroke="#ef4444"
-                strokeWidth={1.5}
-                strokeDasharray="6 3"
+                stroke="#C62828"
+                strokeWidth={2}
+                strokeDasharray="6 4"
                 dot={false}
                 name="33% CAGR Vision"
                 connectNulls={false}
@@ -280,8 +284,8 @@ export default function CommandCenterPage() {
               <Line
                 type="monotone"
                 dataKey="actual"
-                stroke="#3b82f6"
-                strokeWidth={2}
+                stroke="#1565C0"
+                strokeWidth={2.5}
                 dot={false}
                 name="Actual net revenue"
               />

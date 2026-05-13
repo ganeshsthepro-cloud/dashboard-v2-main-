@@ -1,11 +1,13 @@
+﻿/* == HRMS / People Page — Amrutanjan Brand Colors == */
+
 .pp-page {
-  background: #f9fafb;
+  background: #F5F5F0;
   min-height: calc(100vh - 52px);
   overflow-y: auto;
-  padding: 20px 24px 32px;
+  padding: 16px 20px 32px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -16,36 +18,45 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
-
 .pp-kpi-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: #FFFFFF;
+  border: 1px solid #E0E0D8;
   border-radius: 10px;
-  padding: 16px 20px 18px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 18px 22px;
+  position: relative;
+  overflow: hidden;
 }
+.pp-kpi-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 5px;
+  border-radius: 10px 0 0 10px;
+}
+.pp-kpi-card:nth-child(1)::before { background: #F5C200; }
+.pp-kpi-card:nth-child(2)::before { background: #C62828; }
+.pp-kpi-card:nth-child(3)::before { background: #2E7B34; }
 
 .pp-kpi-label {
-  font-size: 11px;
-  color: #6b7280;
-  font-weight: 500;
+  font-size: 10px;
+  color: #757575;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
   margin: 0 0 8px;
 }
-
 .pp-kpi-value {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
-  color: #111827;
+  color: #1A1A1A;
   letter-spacing: -0.02em;
   margin: 0 0 4px;
 }
-
-.pp-red   { color: #dc2626; }
-.pp-green { color: #16a34a; }
-
+.pp-red   { color: #C62828; }
+.pp-green { color: #2E7B34; }
 .pp-kpi-sub {
-  font-size: 11.5px;
-  color: #9ca3af;
+  font-size: 11px;
+  color: #757575;
   margin: 0;
 }
 
@@ -55,51 +66,47 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-
 .pp-chart-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: #FFFFFF;
+  border: 1px solid #E0E0D8;
   border-radius: 10px;
-  padding: 14px 16px 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 18px 22px 14px;
 }
-
 .pp-chart-full {
+  background: #FFFFFF;
+  border: 1px solid #E0E0D8;
+  border-radius: 10px;
+  padding: 18px 22px 14px;
   width: 100%;
 }
-
 .pp-chart-title {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
-
 .pp-chart-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
+  margin-top: 10px;
 }
-
 .pp-view-link {
   font-size: 11px;
-  color: #6b7280;
+  color: #1565C0;
   cursor: pointer;
+  font-weight: 500;
 }
-
 .pp-updated {
   font-size: 10.5px;
-  color: #9ca3af;
+  color: #757575;
   font-style: italic;
 }
 
 /* Pie */
-.pp-pie-row {
-  display: flex;
-  align-items: center;
-}
-
+.pp-pie-row { display: flex; align-items: center; }
 .pp-pie-legend {
   flex: 1;
   display: flex;
@@ -107,45 +114,23 @@
   gap: 8px;
   padding-left: 10px;
 }
-
-.pp-pie-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-}
-
-.pp-pie-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.pp-pie-name {
-  flex: 1;
-  color: #374151;
-}
-
-.pp-pie-pct {
-  color: #111827;
-  font-weight: 600;
-  font-size: 13px;
-}
+.pp-pie-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.pp-pie-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.pp-pie-name { flex: 1; color: #1A1A1A; }
+.pp-pie-pct { color: #1A1A1A; font-weight: 700; font-size: 13px; }
 
 /* Tooltip */
 .pp-tooltip {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: #FFFFFF;
+  border: 1px solid #E0E0D8;
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
-
 .pp-tooltip-label {
   font-weight: 600;
-  color: #111827;
+  color: #1A1A1A;
   margin: 0 0 4px;
   font-size: 11px;
 }
@@ -156,46 +141,22 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-
 .pp-agent-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: #FFFFFF;
+  border: 1px solid #E0E0D8;
   border-radius: 10px;
-  padding: 14px 16px 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 18px 22px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+.pp-agent-header { display: flex; align-items: center; justify-content: space-between; }
+.pp-agent-title-row { display: flex; align-items: center; gap: 6px; }
+.pp-agent-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.pp-dot-green { background: #2E7B34; box-shadow: 0 0 5px rgba(46,123,52,0.5); }
+.pp-dot-red   { background: #C62828; box-shadow: 0 0 5px rgba(198,40,40,0.5); }
 
-.pp-agent-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.pp-agent-title-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.pp-agent-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.pp-dot-green { background: #16a34a; box-shadow: 0 0 5px #16a34a88; }
-.pp-dot-red   { background: #dc2626; box-shadow: 0 0 5px #dc262688; }
-
-.pp-agent-name {
-  font-size: 11px;
-  font-weight: 600;
-  color: #374151;
-}
-
+.pp-agent-name { font-size: 11px; font-weight: 600; color: #757575; }
 .pp-agent-badge {
   font-size: 10px;
   font-weight: 700;
@@ -204,66 +165,40 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+.pp-badge-p2 { background: #FFFDE7; color: #F57F00; border: 1px solid #F5C200; }
+.pp-badge-p1 { background: #FFEBEE; color: #C62828; border: 1px solid #EF9A9A; }
 
-.pp-badge-p2 { background: #dbeafe; color: #1d4ed8; }
-.pp-badge-p1 { background: #fee2e2; color: #b91c1c; }
-
-.pp-agent-headline {
-  font-size: 14px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.pp-agent-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
+.pp-agent-headline { font-size: 14px; font-weight: 700; color: #1A1A1A; margin: 0; line-height: 1.4; }
+.pp-agent-tags { display: flex; flex-wrap: wrap; gap: 5px; }
 .pp-tag {
   font-size: 10.5px;
   font-weight: 500;
-  background: #f3f4f6;
-  color: #374151;
+  background: #E8F5E9;
+  color: #2E7B34;
   padding: 2px 8px;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #C8E6C9;
 }
-
-.pp-tag-risk {
-  background: #fff7ed;
-  color: #c2410c;
-  border-color: #fed7aa;
-}
-
-.pp-agent-copy {
-  font-size: 12px;
-  color: #4b5563;
-  line-height: 1.6;
-  margin: 0;
-}
-
+.pp-tag-risk { background: #FFEBEE; color: #C62828; border-color: #EF9A9A; }
+.pp-agent-copy { font-size: 12px; color: #757575; line-height: 1.6; margin: 0; }
 .pp-agent-btn {
   align-self: flex-start;
   margin-top: 4px;
-  background: #1e1b4b;
-  color: #fff;
+  background: #2E7B34;
+  color: #FFFFFF;
   border: none;
   padding: 7px 14px;
   border-radius: 6px;
   font-size: 12px;
   font-family: inherit;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
 }
-
-.pp-agent-btn:hover { background: #312e81; }
+.pp-agent-btn:hover { background: #1B5E20; }
 
 @media (max-width: 900px) {
-  .pp-kpi-row     { grid-template-columns: 1fr; }
-  .pp-charts-row  { grid-template-columns: 1fr; }
-  .pp-agents-row  { grid-template-columns: 1fr; }
+  .pp-kpi-row    { grid-template-columns: 1fr; }
+  .pp-charts-row { grid-template-columns: 1fr; }
+  .pp-agents-row { grid-template-columns: 1fr; }
 }
