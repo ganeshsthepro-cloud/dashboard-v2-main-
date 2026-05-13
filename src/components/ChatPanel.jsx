@@ -77,9 +77,13 @@ const Avatar = ({ role }) => (
   </div>
 )
 
+const stripEmojis = (text) =>
+  text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '').replace(/\s{2,}/g, ' ').trim()
+
 const MessageBubble = ({ msg }) => {
   const renderText = (text) => {
-    return text.split('\n').map((line, i) => {
+    const clean = stripEmojis(text)
+    return clean.split('\n').map((line, i) => {
       const bold = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       return <p key={i} dangerouslySetInnerHTML={{ __html: bold }} />
     })
@@ -119,7 +123,16 @@ export default function ChatPanel() {
     setLoading(true)
 
     try {
-      const systemPrompt = `You are a helpful data analyst assistant for Amrutanjan Health Care Ltd (AHCL). You have access to FY25 financial data: Revenue ₹451.82 Cr, Gross Profit ₹229 Cr, EBITDA ₹58 Cr (12.88%), PBT ₹69 Cr, PAT ₹51 Cr, EPS ₹17.58/share. Segments: OTC ₹290 Cr, Women's Hygiene ₹124 Cr, Beverages ₹36 Cr. ROCE 21.44%. Answer concisely and helpfully. Use markdown bold for emphasis.`
+      const systemPrompt = `You are a professional financial data analyst assistant for Amrutanjan Health Care Ltd (AHCL). You have access to FY25 financial data: Revenue ₹451.82 Cr, Gross Profit ₹229 Cr, EBITDA ₹58 Cr (12.88%), PBT ₹69 Cr, PAT ₹51 Cr, EPS ₹17.58/share. Segments: OTC ₹290 Cr, Women's Hygiene ₹124 Cr, Beverages ₹36 Cr. ROCE 21.44%.
+
+Rules:
+- Keep a formal, professional tone suitable for business reports.
+- NEVER use emojis, emoticons, or unicode symbols like 📊🎯💡.
+- Use markdown bold (**text**) for emphasis.
+- Use numbered lists or bullet points for structured data.
+- Be concise, data-driven, and precise with numbers.
+- Do not use casual language, slang, or filler phrases like "feel free to ask".
+- Start responses directly with the answer, not greetings.`
       const chatHistory = newMessages.filter(m => m.role === 'user' || m.role === 'assistant').map(m => ({
         role: m.role === 'assistant' ? 'ai' : 'user',
         text: m.text,
