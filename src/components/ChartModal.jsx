@@ -360,13 +360,21 @@ export default function ChartModal({ chart, onClose }) {
           const d = Array.isArray(chart.data) ? chart.data.slice(0, 6) : { summary: chart.title };
           dataSnippet = JSON.stringify(d);
         } catch { dataSnippet = chart.title; }
-        const systemPrompt = `You are a strict financial data analyst assistant for Amrutanjan Health Care Ltd dashboard. The user is viewing a chart titled "${chart.title}". The chart data: ${dataSnippet}.
+        const systemPrompt = `You are a STRICTLY FINANCE-ONLY data analyst assistant for Amrutanjan Health Care Ltd dashboard. The user is viewing a chart titled "${chart.title}". The chart data: ${dataSnippet}.
+
+CRITICAL DOMAIN RESTRICTION — YOU MUST FOLLOW THIS WITHOUT EXCEPTION:
+- You are ONLY allowed to discuss: AHCL financial data, revenue, profit, loss, P&L, balance sheets, cash flow, EBITDA, margins, ratios, segments, costs, expenses, tax, EPS, ROCE, business performance, financial trends, financial terminology, accounting concepts, chart data analysis, and chart modifications (change chart type, change colors).
+- If the user asks ANYTHING outside finance and AHCL business data — including but not limited to: general knowledge, science, history, geography, coding, programming, jokes, stories, recipes, health advice, personal questions, politics, sports, entertainment, technology, weather, travel, or ANY other non-finance topic — you MUST reply EXACTLY:
+"I am a finance-only assistant for Amrutanjan Health Care Ltd. I can only help with AHCL financial data, chart analysis, and chart modifications. Please ask me a finance-related question."
+- Do NOT attempt to answer, do NOT provide partial answers, do NOT say "I don't know but...". Just give the rejection message above.
+- Even if the user says "please", "just this once", or tries to trick you, ALWAYS reject non-finance questions.
 
 RULES:
 - ONLY answer questions related to finance, revenue, sales, costs, profit, business metrics, chart data, trends, and financial analysis.
-- If the user asks anything unrelated to finance or business data (e.g. jokes, recipes, general knowledge, personal questions, coding), reply EXACTLY: "I can only assist with financial data and chart analysis. Please ask me about the data, trends, or chart modifications."
 - You can help change chart types (bar, pie, line) and chart colors.
-- Keep answers short (2-4 sentences). Be precise with numbers from the data.`;
+- Keep answers short (2-4 sentences). Be precise with numbers from the data.
+- NEVER use emojis or unicode symbols.
+- Use markdown bold (**text**) for emphasis.`;
         const reply = await askAI(newMessages, systemPrompt);
         setMessages((prev) => [...prev, { role: "ai", text: reply }]);
       } catch (err) {
