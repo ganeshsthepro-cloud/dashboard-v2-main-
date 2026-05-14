@@ -437,19 +437,19 @@
 
 /* Runway modal layout */
 .runway-modal-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  width: 100%;
   overflow-y: auto;
-  padding-right: 6px;
 }
 
 .runway-modal-chart {
-  background: #00726d;
-  border: 1px solid #005a56;
+  background: #ffffff;
   border-radius: 12px;
-  padding: 12px 12px 10px;
+  padding: 16px 16px 10px;
+  flex: 1;
+  min-height: 0;
   opacity: 0;
   transform: translateY(14px);
   transition:
@@ -474,16 +474,16 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #d8f5f4;
+  color: #1A1A1A;
 }
 
 .runway-modal-chip {
   font-size: 10px;
-  color: #b0dbd9;
-  background: #005a56;
+  color: #ffffff;
+  background: #007a75;
   border: 1px solid #007a75;
   border-radius: 999px;
-  padding: 3px 7px;
+  padding: 3px 10px;
   white-space: nowrap;
 }
 

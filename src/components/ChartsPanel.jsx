@@ -684,10 +684,9 @@ export default function ChartsPanel({ lastQuery, onClose, onChartOpen }) {
           <div
             className="chart-card clickable"
             onClick={() => openChart("cashflow")}
-            style={{ background: "#ffffff" }}
           >
             <div className="chart-title-row">
-              <span className="chart-title" style={{ color: "#1A1A1A" }}>AHCL FY 2024-25 Cash Flow Sankey</span>
+              <span className="chart-title">AHCL FY 2024-25 Cash Flow Sankey</span>
               <span className="expand-hint">
                 <ExpandIcon />
               </span>

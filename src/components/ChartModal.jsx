@@ -1093,12 +1093,12 @@ RULES:
     if (chart.id === "cashflow") {
       return (
         <div className="runway-modal-layout">
-          <div className="runway-modal-chart visible" style={{ background: "#ffffff" }}>
+          <div className="runway-modal-chart visible">
             <div className="runway-modal-title-row">
-              <span className="runway-modal-title" style={{ color: "#1A1A1A" }}>AHCL FY 2024-25 Cash Flow Sankey</span>
+              <span className="runway-modal-title">AHCL FY 2024-25 Cash Flow Sankey</span>
               <span className="runway-modal-chip">Interactive Sankey</span>
             </div>
-            <ResponsiveContainer width="100%" height={460}>
+            <ResponsiveContainer width="100%" height="90%">
               <Sankey
                 className="cashflow-sankey"
                 data={chart.data}
