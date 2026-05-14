@@ -216,7 +216,7 @@ Trial balance: Total Dr = Total Cr = ₹7.03 Cr. Assets ₹3.65Cr, Revenue ₹4.
 
 RULES: Return ONLY valid JSON. 2-4 KPIs, 1-2 charts. Use ₹ Indian notation. Do NOT use any emojis.`;
 
-export default function ChartsPanel({ lastQuery }) {
+export default function ChartsPanel({ lastQuery, onClose, onChartOpen }) {
   const [activeChart, setActiveChart] = useState(null);
   const [viewMode, setViewMode] = useState("insights"); // "insights" | "report" | "dashboard"
   const [reportContent, setReportContent] = useState("");
@@ -238,8 +238,11 @@ export default function ChartsPanel({ lastQuery }) {
     return { background: baseColor + "22", borderLeft: `4px solid ${baseColor}` };
   };
 
-  const openChart = (chartId) =>
-    setActiveChart(CHARTS.find((c) => c.id === chartId));
+  const openChart = (chartId) => {
+    const chart = CHARTS.find((c) => c.id === chartId);
+    if (onChartOpen) onChartOpen(chart);
+    else setActiveChart(chart);
+  };
 
   const generateReport = async () => {
     const query = lastQuery || "Generate a financial overview report";
@@ -280,17 +283,58 @@ export default function ChartsPanel({ lastQuery }) {
         return p;
       });
     };
-    return text.split("\n").map((line, i) => {
-      const l = stripEmoji(line);
-      if (l.startsWith("### ")) return <h4 key={i} className="cp-report-h4">{renderInline(l.slice(4))}</h4>;
-      if (l.startsWith("## ")) return <h3 key={i} className="cp-report-h3">{renderInline(l.slice(3))}</h3>;
-      if (l.startsWith("# ")) return <h2 key={i} className="cp-report-h2">{renderInline(l.slice(2))}</h2>;
-      if (l.startsWith("| ")) return <p key={i} className="cp-report-table-line">{l}</p>;
-      if (l.startsWith("---") || l.startsWith("|-")) return null;
-      if (l.startsWith("- ")) return <p key={i} className="cp-report-bullet">{renderInline(l)}</p>;
-      if (!l.trim()) return <br key={i} />;
-      return <p key={i} className="cp-report-line">{renderInline(l)}</p>;
-    });
+
+    const parseTable = (lines) => {
+      const rows = lines.map(l =>
+        l.split("|").filter(c => c.trim() !== "").map(c => c.trim())
+      );
+      if (rows.length < 1) return null;
+      const header = rows[0];
+      const body = rows.filter((_, i) => {
+        if (i === 0) return false;
+        // skip separator rows like |---|---|
+        if (lines[i] && /^\|[\s\-:|]+\|$/.test(lines[i].trim())) return false;
+        return true;
+      });
+      return (
+        <table className="cp-report-table">
+          <thead>
+            <tr>{header.map((h, i) => <th key={i}>{renderInline(h)}</th>)}</tr>
+          </thead>
+          <tbody>
+            {body.map((row, i) => (
+              <tr key={i}>{row.map((cell, j) => <td key={j}>{renderInline(cell)}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      );
+    };
+
+    const lines = text.split("\n");
+    const elements = [];
+    let i = 0;
+    while (i < lines.length) {
+      const l = stripEmoji(lines[i]);
+      // Collect consecutive table lines
+      if (l.startsWith("|")) {
+        const tableLines = [];
+        while (i < lines.length && stripEmoji(lines[i]).startsWith("|")) {
+          tableLines.push(stripEmoji(lines[i]));
+          i++;
+        }
+        elements.push(<div key={`tbl-${i}`} className="cp-report-table-wrap">{parseTable(tableLines)}</div>);
+        continue;
+      }
+      if (l.startsWith("### ")) { elements.push(<h4 key={i} className="cp-report-h4">{renderInline(l.slice(4))}</h4>); }
+      else if (l.startsWith("## ")) { elements.push(<h3 key={i} className="cp-report-h3">{renderInline(l.slice(3))}</h3>); }
+      else if (l.startsWith("# ")) { elements.push(<h2 key={i} className="cp-report-h2">{renderInline(l.slice(2))}</h2>); }
+      else if (l.startsWith("---")) { elements.push(<hr key={i} className="cp-report-hr" />); }
+      else if (l.startsWith("- ")) { elements.push(<p key={i} className="cp-report-bullet">{renderInline(l)}</p>); }
+      else if (!l.trim()) { elements.push(<br key={i} />); }
+      else { elements.push(<p key={i} className="cp-report-line">{renderInline(l)}</p>); }
+      i++;
+    }
+    return elements;
   };
 
   const renderDashboard = () => {
@@ -350,10 +394,20 @@ export default function ChartsPanel({ lastQuery }) {
       <aside className="charts-panel">
         <div className="panel-header">
           <h2 className="panel-title">Insights</h2>
-          <div className="cp-view-btns">
-            <button className={`cp-view-btn${viewMode === "insights" ? " cp-view-active" : ""}`} onClick={() => setViewMode("insights")}>Static</button>
-            <button className={`cp-view-btn cp-btn-report${viewMode === "report" ? " cp-view-active" : ""}`} onClick={generateReport}>Report</button>
-            <button className={`cp-view-btn cp-btn-dash${viewMode === "dashboard" ? " cp-view-active" : ""}`} onClick={generateDashboard}>Dashboard</button>
+          <div className="panel-header-actions">
+            <div className="cp-view-btns">
+              <button className={`cp-view-btn${viewMode === "insights" ? " cp-view-active" : ""}`} onClick={() => setViewMode("insights")}>Static</button>
+              <button className={`cp-view-btn cp-btn-report${viewMode === "report" ? " cp-view-active" : ""}`} onClick={generateReport}>Report</button>
+              <button className={`cp-view-btn cp-btn-dash${viewMode === "dashboard" ? " cp-view-active" : ""}`} onClick={generateDashboard}>Dashboard</button>
+            </div>
+            {onClose && (
+              <button className="panel-close-btn" onClick={onClose} title="Close Insights">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                  <line x1="15" y1="3" x2="15" y2="21" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -703,7 +757,7 @@ export default function ChartsPanel({ lastQuery }) {
         )}
       </aside>
 
-      {activeChart && (
+      {activeChart && !onChartOpen && (
         <ChartModal chart={activeChart} onClose={() => setActiveChart(null)} />
       )}
     </>

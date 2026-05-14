@@ -3,6 +3,7 @@ import { useTheme } from "./ThemeContext.jsx";
 import SourcePanel from "./components/SourcePanel.jsx";
 import ChatPanel from "./components/ChatPanel.jsx";
 import ChartsPanel from "./components/ChartsPanel.jsx";
+import ChartModal from "./components/ChartModal.jsx";
 import CommandCenterPage from "./components/CommandCenterPage.jsx";
 import PeoplePage from "./components/PeoplePage.jsx";
 import datamochaLogo from "./assets/datamocha-logo.svg";
@@ -11,9 +12,33 @@ import "./App.css";
 export default function App() {
   const [activePage, setActivePage] = useState("workspace");
   const [showPalette, setShowPalette] = useState(false);
+  const [leftWidth, setLeftWidth] = useState(300);
   const [rightWidth, setRightWidth] = useState(360);
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
   const [lastChatQuery, setLastChatQuery] = useState("");
+  const [activeChart, setActiveChart] = useState(null);
   const { mode, toggleMode, colorTemplate, setColorTemplate, COLOR_TEMPLATES } = useTheme();
+
+  const startLeftResize = (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = leftWidth;
+    const onMove = (ev) => {
+      const diff = ev.clientX - startX;
+      setLeftWidth(Math.min(Math.max(startW + diff, 200), 500));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
 
   const startResize = (e) => {
     e.preventDefault();
@@ -111,17 +136,29 @@ export default function App() {
         </div>
       </header>
       {activePage === "workspace" && (
-        <main className="panels" style={{ gridTemplateColumns: `300px 1fr 6px ${rightWidth}px` }}>
-          <SourcePanel />
-          <ChatPanel onQueryChange={setLastChatQuery} />
-          <div className="panel-resize-handle" onMouseDown={startResize}>
-            <div className="panel-resize-grip" />
+        <main className="panels" style={{ gridTemplateColumns: `${leftOpen ? leftWidth + 'px' : '0px'} 1fr ${rightOpen ? rightWidth + 'px' : '0px'}` }}>
+          <div className={`source-panel-wrapper${leftOpen ? '' : ' panel-collapsed'}`}>
+            <SourcePanel onClose={() => setLeftOpen(false)} />
+            <div className="panel-resize-handle panel-resize-handle-right" onMouseDown={startLeftResize}>
+              <div className="panel-resize-grip" />
+            </div>
           </div>
-          <ChartsPanel lastQuery={lastChatQuery} />
+          <div className="chat-panel-wrapper">
+            <ChatPanel onQueryChange={setLastChatQuery} leftOpen={leftOpen} rightOpen={rightOpen} onToggleLeft={() => setLeftOpen(o => !o)} onToggleRight={() => setRightOpen(o => !o)} />
+          </div>
+          <div className={`charts-panel-wrapper${rightOpen ? '' : ' panel-collapsed'}`}>
+            <div className="panel-resize-handle" onMouseDown={startResize}>
+              <div className="panel-resize-grip" />
+            </div>
+            <ChartsPanel lastQuery={lastChatQuery} onClose={() => setRightOpen(false)} onChartOpen={setActiveChart} />
+          </div>
         </main>
       )}
       {activePage === "command-center" && <CommandCenterPage />}
       {activePage === "people" && <PeoplePage />}
+      {activeChart && (
+        <ChartModal chart={activeChart} onClose={() => setActiveChart(null)} />
+      )}
     </div>
   );
 }

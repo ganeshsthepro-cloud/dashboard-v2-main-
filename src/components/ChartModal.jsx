@@ -1192,13 +1192,13 @@ RULES:
           </div>
         )}
 
-        {/* Body: chart left, chat right (question mode) OR chat below (command mode) */}
-        <div className={`modal-body-row ${chatMode === "question" ? "chat-right" : "chat-bottom"}`}>
+        {/* Body: chart left, chat right when messages exist */}
+        <div className={`modal-body-row ${messages.length > 0 ? "chat-right" : "chat-bottom"}`}>
           {/* Chart area */}
           <div className="modal-chart-area">{chartReady && renderChart()}</div>
 
-          {/* Chat sidebar - visible only in question mode */}
-          {chatMode === "question" && (
+          {/* Chat sidebar - visible when any messages exist */}
+          {messages.length > 0 && (
             <div className="modal-chat-sidebar">
               <div className="modal-chat-log">
                 {messages.map((m, i) => (
@@ -1227,34 +1227,6 @@ RULES:
             </div>
           )}
         </div>
-
-        {/* Command chat log - below chart, only in command mode */}
-        {chatMode === "command" && messages.length > 0 && (
-          <div className="modal-chat-log modal-chat-log-bottom">
-            {messages.map((m, i) => (
-              <div key={i} className={`modal-msg modal-msg-${m.role}`}>
-                {m.role === "ai" && <span className="modal-ai-label">AI</span>}
-                <span className="modal-msg-text">{
-                  m.text.split('\n').map((line, j) => {
-                    const html = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-                    return <p key={j} dangerouslySetInnerHTML={{ __html: html }} />;
-                  })
-                }</span>
-              </div>
-            ))}
-            {loading && (
-              <div className="modal-msg modal-msg-ai">
-                <span className="modal-ai-label">AI</span>
-                <span className="modal-thinking">
-                  <span />
-                  <span />
-                  <span />
-                </span>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
 
         {/* AI input - always at bottom */}
         <div className="modal-input-area">

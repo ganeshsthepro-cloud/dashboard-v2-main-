@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-radius: 12px;
 }
 
 .charts-scroll {
@@ -383,7 +384,6 @@
 /* ===== LIGHT MODE ===== */
 .light .charts-panel {
   background: #FAFAFA;
-  border-left: 1px solid #E0E0D8;
 }
 .light .badge {
   background: #E8F5E9;
@@ -497,14 +497,46 @@
   margin: 2px 0;
   line-height: 1.55;
 }
-.cp-report-table-line {
-  font-size: 11px;
-  font-family: "SF Mono", "Fira Code", monospace;
-  color: #b0dbd9;
-  margin: 1px 0;
-  line-height: 1.4;
-  white-space: pre;
+.cp-report-table-wrap {
+  margin: 8px 0;
+  overflow-x: auto;
 }
+.cp-report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  color: #d8f5f4;
+}
+.cp-report-table th {
+  text-align: left;
+  padding: 6px 10px;
+  background: #005a56;
+  color: #e0f5f4;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid #007a75;
+  white-space: nowrap;
+}
+.cp-report-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid #004a44;
+  color: #b0dbd9;
+  font-size: 11.5px;
+}
+.cp-report-table tr:hover td {
+  background: rgba(0, 196, 186, 0.06);
+}
+.cp-report-table td strong {
+  color: #e0f5f4;
+}
+.cp-report-hr {
+  border: none;
+  border-top: 1px solid #005a56;
+  margin: 10px 0;
+}
+
 .cp-report-bullet {
   font-size: 11.5px;
   color: #9ac8c6;
@@ -591,6 +623,11 @@
 .light .cp-report-h4 { color: #555; }
 .light .cp-report-line { color: #555; }
 .light .cp-report-table-line { color: #333; }
+.light .cp-report-table th { background: #E8F5E9; color: #1A1A1A; border-bottom-color: #ccc; }
+.light .cp-report-table td { color: #555; border-bottom-color: #E0E0D8; }
+.light .cp-report-table td strong { color: #1A1A1A; }
+.light .cp-report-table tr:hover td { background: rgba(46,123,52,0.04); }
+.light .cp-report-hr { border-top-color: #E0E0D8; }
 .light .cp-report-bullet { color: #555; }
 .light .cp-report-bold { color: #1A1A1A; }
 .light .cp-dash-title { color: #1A1A1A; }

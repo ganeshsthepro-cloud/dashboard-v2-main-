@@ -259,10 +259,79 @@
 
 .panels {
   display: grid;
-  grid-template-columns: 300px 1fr 6px 360px;
+  grid-template-columns: 300px 1fr 360px;
   flex: 1;
   overflow: hidden;
-  gap: 0;
+  gap: 10px;
+  padding: 10px;
+  background: #0a1929;
+  transition: grid-template-columns 0.25s ease;
+}
+
+.app-layout.light .panels {
+  background: #E8E8E3;
+}
+
+/* Source panel wrapper with resize handle */
+.source-panel-wrapper {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  border-radius: 12px;
+  min-width: 0;
+}
+
+.source-panel-wrapper .source-panel {
+  flex: 1;
+  border-radius: 0;
+  min-width: 0;
+}
+
+.source-panel-wrapper .panel-resize-handle-right {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  z-index: 5;
+}
+
+/* Charts panel wrapper with resize handle */
+.charts-panel-wrapper {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  border-radius: 12px;
+  min-width: 0;
+}
+
+.charts-panel-wrapper .charts-panel {
+  flex: 1;
+  border-radius: 0;
+  min-width: 0;
+}
+
+/* Collapsed panel - hidden but stays in DOM */
+.panel-collapsed {
+  overflow: hidden;
+  width: 0;
+  min-width: 0;
+  max-width: 0;
+  visibility: hidden;
+  pointer-events: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+.charts-panel-wrapper .panel-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  z-index: 5;
 }
 
 /* Resize handle between Chat and Insights */
@@ -285,4 +354,92 @@
   border-radius: 2px;
   background: rgba(255,255,255,0.2);
   transition: background 0.2s, height 0.2s;
+}
+
+/* Chat panel wrapper with toggle buttons */
+.chat-panel-wrapper {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.chat-panel-wrapper .chat-panel {
+  flex: 1;
+  border-radius: 0;
+}
+
+/* Panel toggle (collapse/expand) buttons - old absolute style (unused) */
+
+/* Inline toggle button inside chat header */
+.panel-toggle-btn-inline {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: #b0dbd9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.panel-toggle-btn-inline:hover {
+  background: rgba(255,255,255,0.1);
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.3);
+}
+
+/* Light mode inline toggle */
+.light .panel-toggle-btn-inline {
+  border-color: #E0E0D8;
+  color: #757575;
+}
+.light .panel-toggle-btn-inline:hover {
+  background: #F5F5F0;
+  color: #1A1A1A;
+  border-color: #aaa;
+}
+
+/* Panel header actions row */
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Panel close button in header */
+.panel-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: #b0dbd9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.panel-close-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.3);
+}
+
+/* Light mode close button */
+.light .panel-close-btn {
+  border-color: #E0E0D8;
+  color: #757575;
+}
+.light .panel-close-btn:hover {
+  background: #F5F5F0;
+  color: #1A1A1A;
+  border-color: #aaa;
 }

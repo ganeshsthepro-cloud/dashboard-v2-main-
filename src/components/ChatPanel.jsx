@@ -136,7 +136,7 @@ const MessageBubble = ({ msg, onSpeak, isSpeaking }) => {
   )
 }
 
-export default function ChatPanel({ onQueryChange }) {
+export default function ChatPanel({ onQueryChange, leftOpen, rightOpen, onToggleLeft, onToggleRight }) {
   const [messages, setMessages] = useState(SAMPLE_MESSAGES)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -255,7 +255,6 @@ Rules:
         text: reply,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       }])
-      speakText(replyId, reply)
     } catch (err) {
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
@@ -284,10 +283,30 @@ Rules:
   return (
     <section className="chat-panel">
       <div className="panel-header chat-header">
-        <h2 className="panel-title">Chat</h2>
-        <div className="chat-meta">
-          <span className="status-dot" />
-          <span className="status-label">3 sources active</span>
+        <div className="chat-header-left">
+          {!leftOpen && (
+            <button className="panel-toggle-btn-inline" onClick={onToggleLeft} title="Open Sources">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </button>
+          )}
+          <h2 className="panel-title">Chat</h2>
+        </div>
+        <div className="chat-header-right">
+          <div className="chat-meta">
+            <span className="status-dot" />
+            <span className="status-label">3 sources active</span>
+          </div>
+          {!rightOpen && (
+            <button className="panel-toggle-btn-inline" onClick={onToggleRight} title="Open Insights">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <line x1="15" y1="3" x2="15" y2="21" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
