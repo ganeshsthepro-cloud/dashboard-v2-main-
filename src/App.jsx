@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTheme } from "./ThemeContext.jsx";
 import SourcePanel from "./components/SourcePanel.jsx";
 import ChatPanel from "./components/ChatPanel.jsx";
@@ -11,7 +11,29 @@ import "./App.css";
 export default function App() {
   const [activePage, setActivePage] = useState("workspace");
   const [showPalette, setShowPalette] = useState(false);
+  const [rightWidth, setRightWidth] = useState(360);
+  const [lastChatQuery, setLastChatQuery] = useState("");
   const { mode, toggleMode, colorTemplate, setColorTemplate, COLOR_TEMPLATES } = useTheme();
+
+  const startResize = (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = rightWidth;
+    const onMove = (ev) => {
+      const diff = startX - ev.clientX;
+      setRightWidth(Math.min(Math.max(startW + diff, 260), 600));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
 
   return (
     <div className={`app-layout ${mode}`}>
@@ -89,10 +111,13 @@ export default function App() {
         </div>
       </header>
       {activePage === "workspace" && (
-        <main className="panels">
+        <main className="panels" style={{ gridTemplateColumns: `300px 1fr 6px ${rightWidth}px` }}>
           <SourcePanel />
-          <ChatPanel />
-          <ChartsPanel />
+          <ChatPanel onQueryChange={setLastChatQuery} />
+          <div className="panel-resize-handle" onMouseDown={startResize}>
+            <div className="panel-resize-grip" />
+          </div>
+          <ChartsPanel lastQuery={lastChatQuery} />
         </main>
       )}
       {activePage === "command-center" && <CommandCenterPage />}

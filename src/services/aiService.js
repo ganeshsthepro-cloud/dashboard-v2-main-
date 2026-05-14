@@ -3,13 +3,13 @@ const API_KEY = import.meta.env.VITE_AZURE_OPENAI_KEY;
 const DEPLOYMENT = import.meta.env.VITE_AZURE_OPENAI_DEPLOYMENT || "gpt-5.2-chat";
 const API_VERSION = import.meta.env.VITE_AZURE_OPENAI_API_VERSION || "2024-12-01-preview";
 
-export async function askAI(messages, systemPrompt) {
+export async function askAI(messages, systemPrompt, maxTokens) {
   const body = {
     messages: [
       { role: "system", content: systemPrompt },
       ...messages.map((m) => ({ role: m.role === "ai" ? "assistant" : "user", content: m.text })),
     ],
-    max_completion_tokens: 512,
+    max_completion_tokens: maxTokens || 512,
   };
 
   // In production, call Azure OpenAI directly; in dev, use Vite proxy

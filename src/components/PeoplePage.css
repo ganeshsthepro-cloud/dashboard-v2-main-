@@ -25,17 +25,8 @@
   padding: 18px 22px;
   position: relative;
   overflow: hidden;
+  transition: border-color 0.3s ease;
 }
-.pp-kpi-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 5px;
-  border-radius: 10px 0 0 10px;
-}
-.pp-kpi-card:nth-child(1)::before { background: #F5C200; }
-.pp-kpi-card:nth-child(2)::before { background: #C62828; }
-.pp-kpi-card:nth-child(3)::before { background: #2E7B34; }
 
 .pp-kpi-label {
   font-size: 10px;

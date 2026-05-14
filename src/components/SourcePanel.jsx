@@ -1,18 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
 import './SourcePanel.css'
 
-const ACCEPTED_TYPES = ['.pdf', '.txt', '.csv', '.json', '.md', '.docx']
+const ACCEPTED_TYPES = ['.pdf', '.txt', '.csv', '.json', '.md', '.docx', '.xlsx', '.xls']
 const STORAGE_KEY = 'datamocha-source-files'
 
 const FileIcon = ({ type }) => {
-  const colors = { pdf: '#fc5252', csv: '#22c55e', json: '#E5A800', txt: '#60a5fa', md: '#a78bfa', docx: '#3b82f6' }
+  const colors = { pdf: '#fc5252', csv: '#22c55e', json: '#E5A800', txt: '#60a5fa', md: '#a78bfa', docx: '#3b82f6', xlsx: '#217346', xls: '#217346' }
+  const textColors = { xlsx: '#ffffff', xls: '#ffffff' }
   const color = colors[type] || '#9999aa'
+  const textColor = textColors[type] || color
   return (
-    <div className="file-icon" style={{ '--icon-color': color }}>
+    <div className="file-icon" style={{ '--icon-color': color, '--icon-text': textColor }}>
       {type.toUpperCase().slice(0, 3)}
     </div>
   )
 }
+
+const DEFAULT_FILES = [
+  { id: 1, name: 'sales_data_2024.csv', type: 'csv', size: '142 KB' },
+  { id: 2, name: 'product_overview.pdf', type: 'pdf', size: '2.3 MB' },
+  { id: 3, name: 'notes.md', type: 'md', size: '8 KB' },
+  { id: 4, name: 'Trial_Balance_FY25.xlsx', type: 'xlsx', size: '86 KB' },
+  { id: 5, name: 'P&L_Statement_FY25.xlsx', type: 'xlsx', size: '74 KB' },
+]
 
 export default function SourcePanel() {
   const [files, setFiles] = useState(() => {
@@ -20,17 +30,17 @@ export default function SourcePanel() {
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed)) return parsed
+        if (Array.isArray(parsed)) {
+          const names = parsed.map(f => f.name)
+          const missing = DEFAULT_FILES.filter(d => !names.includes(d.name))
+          return missing.length ? [...parsed, ...missing] : parsed
+        }
       }
     } catch {
       // Ignore storage parsing errors and fall back to defaults.
     }
 
-    return [
-      { id: 1, name: 'sales_data_2024.csv', type: 'csv', size: '142 KB' },
-      { id: 2, name: 'product_overview.pdf', type: 'pdf', size: '2.3 MB' },
-      { id: 3, name: 'notes.md', type: 'md', size: '8 KB' },
-    ]
+    return DEFAULT_FILES
   })
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef()
@@ -93,7 +103,7 @@ export default function SourcePanel() {
           </svg>
         </div>
         <p className="drop-title">Drop files here</p>
-        <p className="drop-hint">{ACCEPTED_TYPES.join(', ')}</p>
+        <p className="drop-hint">.pdf, .txt, .csv, .json, .md, .docx, .xlsx</p>
       </div>
 
       <div className="file-list">

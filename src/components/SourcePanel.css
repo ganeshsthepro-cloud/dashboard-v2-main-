@@ -99,7 +99,7 @@
   height: 32px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--icon-color) 12%, #007a75);
-  color: var(--icon-color);
+  color: var(--icon-text, var(--icon-color));
   display: flex;
   align-items: center;
   justify-content: center;

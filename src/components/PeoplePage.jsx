@@ -66,19 +66,19 @@ export default function PeoplePage() {
     <div className="pp-page">
       {/* Top KPIs */}
       <div className="pp-kpi-row">
-        <div className="pp-kpi-card">
+        <div className="pp-kpi-card" style={{ borderLeft: `5px solid ${colors[0]}` }}>
           <p className="pp-kpi-label">Total employees</p>
           <p className="pp-kpi-value">631</p>
           <p className="pp-kpi-sub">Down from ~686 FY24 · productivity up 25%</p>
         </div>
-        <div className="pp-kpi-card">
+        <div className="pp-kpi-card" style={{ borderLeft: `5px solid ${colors[2] || colors[0]}` }}>
           <p className="pp-kpi-label">Employee benefit cost</p>
-          <p className="pp-kpi-value pp-red">₹59.10 Cr</p>
+          <p className="pp-kpi-value" style={{ color: colors[2] || "#C62828" }}>₹59.10 Cr</p>
           <p className="pp-kpi-sub">13.08% of revenue · up from 11.32%</p>
         </div>
-        <div className="pp-kpi-card">
+        <div className="pp-kpi-card" style={{ borderLeft: `5px solid ${colors[1]}` }}>
           <p className="pp-kpi-label">Revenue per employee</p>
-          <p className="pp-kpi-value pp-green">₹71.6 L</p>
+          <p className="pp-kpi-value" style={{ color: colors[1] }}>₹71.6 L</p>
           <p className="pp-kpi-sub">₹451.82 Cr ÷ 631 employees</p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -13,8 +13,10 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 import { useTheme } from "../ThemeContext.jsx";
+import { askAI } from "../services/aiService.js";
 import ChartModal from "./ChartModal.jsx";
 import "./ChartsPanel.css";
 
@@ -174,33 +176,197 @@ const ExpandIcon = () => (
   </svg>
 );
 
-export default function ChartsPanel() {
+const REPORT_PROMPT = `You are a financial report generator for Amrutanjan Health Care Ltd (AHCL).
+Generate a detailed, professional accounting/financial report based on the user's query.
+FY25 data: Revenue ₹451.82 Cr, Gross Profit ₹229 Cr, EBITDA ₹58 Cr (12.88%), PBT ₹69 Cr, PAT ₹51 Cr, EPS ₹17.58/share. OTC ₹290 Cr, Comfy ₹124 Cr, Beverages ₹36 Cr. ROCE 21.44%. OTC gross margin 55.24%.
+
+AHCL P&L Statement (FY25):
+Revenue from Operations: ₹451.82 Cr
+  OTC (Over-the-Counter): ₹290 Cr (64.18%)
+  Comfy (Women's Hygiene): ₹124 Cr (27.44%)
+  Beverages: ₹36 Cr (7.97%)
+COGS: ₹222.82 Cr
+Gross Profit: ₹229 Cr (Gross Margin 50.69%)
+Operating Expenses: Employee Cost ₹59.1L, Rent ₹18L, Depreciation ₹24L, Utilities ₹6.5L, Marketing ₹32L
+EBITDA: ₹58 Cr (12.88%)
+PBT: ₹69 Cr (15.27%)
+PAT: ₹51 Cr (Net Margin 11.29%)
+EPS: ₹17.58/share | ROCE: 21.44%
+
+P&L Formulas: Revenue - COGS = Gross Profit - OpEx = EBIT + Depreciation = EBITDA. PBT = EBIT + Other Income - Interest. PAT = PBT - Tax.
+Margins: Gross Margin = GP/Revenue, Operating Margin = EBIT/Revenue, Net Margin = PAT/Revenue.
+Common Size P&L: Express each line as % of revenue.
+
+For trial balance queries, use this data:
+Cash & Bank: Dr ₹45L, Accounts Receivable: Dr ₹72L, Inventory: Dr ₹85L, Plant & Machinery: Dr ₹1.2Cr, Office Equipment: Dr ₹35L, Prepaid Expenses: Dr ₹8L, Sales Revenue: Cr ₹4.52Cr, Service Income: Cr ₹12L, COGS: Dr ₹1.98Cr, Employee Cost: Dr ₹59.1L, Rent: Dr ₹18L, Depreciation: Dr ₹24L, Utilities: Dr ₹6.5L, Marketing: Dr ₹32L, Accounts Payable: Cr ₹52L, Loans Payable: Cr ₹80L, Outstanding Expenses: Cr ₹15L, Owner's Capital: Cr ₹65L, Retained Earnings: Cr ₹26.78L. Total Dr = Total Cr = ₹7.03 Cr (Balanced).
+
+FORMAT: Use markdown with ## headers, ### subheaders, tables (| format), totals, margins, and analysis. Keep it professional and audit-ready. Use ₹ with Indian notation. Do NOT use any emojis or special symbols like ✅, ❌, ⚡, 📊 etc.`;
+
+const DASHBOARD_PROMPT = `You are a data analyst for Amrutanjan Health Care Ltd.
+Based on the user's query, return a JSON object for dashboard visualizations.
+ONLY return valid JSON, no other text.
+
+JSON structure:
+{"title":"...","kpis":[{"label":"...","value":"...","sub":"..."}],"charts":[{"type":"bar"|"pie","title":"...","data":[{"name":"...","value":NUMBER}]}],"summary":"..."}
+
+FY25 data: Revenue ₹451.82 Cr, Gross Profit ₹229 Cr, EBITDA ₹58 Cr, PBT ₹69 Cr, PAT ₹51 Cr, EPS ₹17.58. OTC ₹290 Cr, Comfy ₹124 Cr, Beverages ₹36 Cr. ROCE 21.44%.
+P&L: COGS ₹222.82 Cr, Gross Margin 50.69%, EBITDA Margin 12.88%, PBT Margin 15.27%, Net Margin 11.29%, OTC Gross Margin 55.24%.
+OpEx: Employee Cost ₹59.1L, Rent ₹18L, Depreciation ₹24L, Utilities ₹6.5L, Marketing ₹32L.
+Trial balance: Total Dr = Total Cr = ₹7.03 Cr. Assets ₹3.65Cr, Revenue ₹4.64Cr, Expenses ₹3.38Cr, Liabilities ₹1.47Cr, Equity ₹0.92Cr.
+
+RULES: Return ONLY valid JSON. 2-4 KPIs, 1-2 charts. Use ₹ Indian notation. Do NOT use any emojis.`;
+
+export default function ChartsPanel({ lastQuery }) {
   const [activeChart, setActiveChart] = useState(null);
+  const [viewMode, setViewMode] = useState("insights"); // "insights" | "report" | "dashboard"
+  const [reportContent, setReportContent] = useState("");
+  const [reportLoading, setReportLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
   const { colors, mode } = useTheme();
   const gridColor = mode === "light" ? "rgba(0,0,0,0.08)" : "#005a56";
   const tickColor = mode === "light" ? "#757575" : "#b0dbd9";
   const tooltipBg = mode === "light" ? "#FFFFFF" : "#007a75";
   const tooltipBorder = mode === "light" ? "#E0E0D8" : "#005a56";
 
+  // Generate KPI card backgrounds from theme colors
+  const kpiCardStyle = (index) => {
+    const baseColor = colors[index % colors.length];
+    if (mode === "light") {
+      return { background: "#FFFFFF", borderLeft: `4px solid ${baseColor}` };
+    }
+    return { background: baseColor + "22", borderLeft: `4px solid ${baseColor}` };
+  };
+
   const openChart = (chartId) =>
     setActiveChart(CHARTS.find((c) => c.id === chartId));
+
+  const generateReport = async () => {
+    const query = lastQuery || "Generate a financial overview report";
+    setViewMode("report");
+    setReportLoading(true);
+    setReportContent("");
+    try {
+      const reply = await askAI([{ role: "user", text: query }], REPORT_PROMPT, 1500);
+      setReportContent(reply);
+    } catch { setReportContent("Failed to generate report. Please try again."); }
+    setReportLoading(false);
+  };
+
+  const generateDashboard = async () => {
+    const query = lastQuery || "Show a financial overview dashboard";
+    setViewMode("dashboard");
+    setDashboardLoading(true);
+    setDashboardData(null);
+    try {
+      const reply = await askAI([{ role: "user", text: query }], DASHBOARD_PROMPT, 1000);
+      const cleaned = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      setDashboardData(JSON.parse(cleaned));
+    } catch { setDashboardData({ error: "Failed to generate dashboard. Please try again." }); }
+    setDashboardLoading(false);
+  };
+
+  const stripEmoji = (str) => str.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{2B55}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{2702}-\u{27B0}\u{E0020}-\u{E007F}✅❌⚡📊🔹🔸▶►●○★☆✓✔✗✘⬆⬇➡⭐💡🚀📈📉🎯💰📋🏆🔑❗❓⚠️℗®™©]/gu, "").trim();
+
+  const renderReport = (text) => {
+    const renderInline = (str) => {
+      const clean = stripEmoji(str);
+      const parts = clean.split(/(\*{2,3}.*?\*{2,3})/g);
+      return parts.map((p, j) => {
+        if (p.startsWith("***") && p.endsWith("***"))
+          return <strong key={j}><em>{p.slice(3, -3)}</em></strong>;
+        if (p.startsWith("**") && p.endsWith("**"))
+          return <strong key={j}>{p.slice(2, -2)}</strong>;
+        return p;
+      });
+    };
+    return text.split("\n").map((line, i) => {
+      const l = stripEmoji(line);
+      if (l.startsWith("### ")) return <h4 key={i} className="cp-report-h4">{renderInline(l.slice(4))}</h4>;
+      if (l.startsWith("## ")) return <h3 key={i} className="cp-report-h3">{renderInline(l.slice(3))}</h3>;
+      if (l.startsWith("# ")) return <h2 key={i} className="cp-report-h2">{renderInline(l.slice(2))}</h2>;
+      if (l.startsWith("| ")) return <p key={i} className="cp-report-table-line">{l}</p>;
+      if (l.startsWith("---") || l.startsWith("|-")) return null;
+      if (l.startsWith("- ")) return <p key={i} className="cp-report-bullet">{renderInline(l)}</p>;
+      if (!l.trim()) return <br key={i} />;
+      return <p key={i} className="cp-report-line">{renderInline(l)}</p>;
+    });
+  };
+
+  const renderDashboard = () => {
+    if (!dashboardData) return null;
+    if (dashboardData.error) return <p className="cp-dash-error">{dashboardData.error}</p>;
+    return (
+      <div className="cp-dash-content">
+        <h3 className="cp-dash-title">{dashboardData.title}</h3>
+        {dashboardData.kpis && (
+          <div className="cp-dash-kpis">
+            {dashboardData.kpis.map((kpi, i) => (
+              <div key={i} className="cp-dash-kpi" style={{ borderLeft: `3px solid ${colors[i % colors.length]}` }}>
+                <p className="cp-dash-kpi-label">{kpi.label}</p>
+                <p className="cp-dash-kpi-value">{kpi.value}</p>
+                {kpi.sub && <p className="cp-dash-kpi-sub">{kpi.sub}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {dashboardData.charts?.map((chart, ci) => (
+          <div key={ci} className="cp-dash-chart">
+            <p className="cp-dash-chart-title">{chart.title}</p>
+            {chart.type === "pie" ? (
+              <ResponsiveContainer width="100%" height={160}>
+                <PieChart>
+                  <Pie data={chart.data} cx="50%" cy="50%" innerRadius={30} outerRadius={60} dataKey="value" paddingAngle={2}>
+                    {chart.data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
+                  </Pie>
+                  <Tooltip formatter={(v) => typeof v === "number" && v >= 100000 ? `₹${(v/100000).toFixed(1)}L` : v} />
+                  <Legend wrapperStyle={{ fontSize: 10 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={chart.data} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 9 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: tickColor, fontSize: 9 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="value" name="Amount" radius={[3, 3, 0, 0]}>
+                    {chart.data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        ))}
+        {dashboardData.summary && (
+          <p className="cp-dash-summary">{dashboardData.summary}</p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
       <aside className="charts-panel">
         <div className="panel-header">
           <h2 className="panel-title">Insights</h2>
-          <span className="badge">Static</span>
+          <div className="cp-view-btns">
+            <button className={`cp-view-btn${viewMode === "insights" ? " cp-view-active" : ""}`} onClick={() => setViewMode("insights")}>Static</button>
+            <button className={`cp-view-btn cp-btn-report${viewMode === "report" ? " cp-view-active" : ""}`} onClick={generateReport}>Report</button>
+            <button className={`cp-view-btn cp-btn-dash${viewMode === "dashboard" ? " cp-view-active" : ""}`} onClick={generateDashboard}>Dashboard</button>
+          </div>
         </div>
 
+        {/* === INSIGHTS (default) === */}
+        {viewMode === "insights" && (
         <div className="charts-scroll">
           {/* KPI Row */}
           <div
             className="insights-kpi-grid"
             aria-label="Amrutanjan Health Care KPI summary cards"
           >
-            {KPI_CARDS.map((kpi) => (
-              <article className="insights-kpi-card" key={kpi.title}>
+            {KPI_CARDS.map((kpi, index) => (
+              <article className="insights-kpi-card" key={kpi.title} style={kpiCardStyle(index)}>
                 <p className="insights-kpi-title">{kpi.title}</p>
                 <p className="insights-kpi-value">{kpi.value}</p>
                 {kpi.subtitle ? (
@@ -502,6 +668,39 @@ export default function ChartsPanel() {
             </ResponsiveContainer>
           </div>
         </div>
+        )}
+
+        {/* === REPORT VIEW === */}
+        {viewMode === "report" && (
+          <div className="charts-scroll cp-report-scroll">
+            {reportLoading ? (
+              <div className="cp-loading">
+                <div className="cp-spinner" />
+                <p>Generating report…</p>
+              </div>
+            ) : (
+              <div className="cp-report-body">
+                {reportContent ? renderReport(reportContent) : (
+                  <p className="cp-empty">Ask something in Chat first, then click Report.</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* === DASHBOARD VIEW === */}
+        {viewMode === "dashboard" && (
+          <div className="charts-scroll cp-dash-scroll">
+            {dashboardLoading ? (
+              <div className="cp-loading">
+                <div className="cp-spinner" />
+                <p>Building dashboard…</p>
+              </div>
+            ) : (
+              renderDashboard()
+            )}
+          </div>
+        )}
       </aside>
 
       {activeChart && (

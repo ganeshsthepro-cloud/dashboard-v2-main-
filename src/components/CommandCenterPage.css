@@ -29,9 +29,8 @@
   padding: 22px 26px 24px;
   position: relative;
   overflow: hidden;
+  transition: background 0.3s ease;
 }
-.cc-hero-card:nth-child(1) { background: linear-gradient(135deg, #F5C200, #E5A800); }
-.cc-hero-card:nth-child(2) { background: linear-gradient(135deg, #2E7B34, #1B5E20); }
 
 .cc-hero-label {
   font-size: 10px;
@@ -39,9 +38,8 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   margin: 0 0 10px;
+  color: rgba(255,255,255,0.8);
 }
-.cc-hero-card:nth-child(1) .cc-hero-label { color: #5D4037; }
-.cc-hero-card:nth-child(2) .cc-hero-label { color: rgba(255,255,255,0.75); }
 
 .cc-hero-value {
   font-size: 38px;
@@ -85,20 +83,8 @@
   padding: 18px 22px;
   position: relative;
   overflow: hidden;
+  transition: border-color 0.3s ease;
 }
-.cc-kpi-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 5px;
-  border-radius: 10px 0 0 10px;
-}
-.cc-kpi-card:nth-child(1)::before { background: #F5C200; }
-.cc-kpi-card:nth-child(2)::before { background: #2E7B34; }
-.cc-kpi-card:nth-child(3)::before { background: #1565C0; }
-.cc-kpi-card:nth-child(4)::before { background: #2E7B34; }
-.cc-kpi-card:nth-child(5)::before { background: #F5C200; }
-.cc-kpi-card:nth-child(6)::before { background: #C62828; }
 
 .cc-kpi-label {
   font-size: 10px;

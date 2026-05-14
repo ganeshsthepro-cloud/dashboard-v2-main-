@@ -217,6 +217,8 @@ export default function ChartModal({ chart, onClose }) {
   const [runwayStage, setRunwayStage] = useState(0);
   const [chartType, setChartType] = useState(chart.id);
   const [colorOverrides, setColorOverrides] = useState({});
+  const [chatMode, setChatMode] = useState(null); // null | "command" | "question"
+  const [chartReady, setChartReady] = useState(false);
   const inputRef = useRef();
   const messagesEndRef = useRef();
 
@@ -226,7 +228,12 @@ export default function ChartModal({ chart, onClose }) {
     };
     window.addEventListener("keydown", onKey);
     inputRef.current?.focus();
-    return () => window.removeEventListener("keydown", onKey);
+    // Delay chart render by one frame so container is properly sized
+    const raf = requestAnimationFrame(() => setChartReady(true));
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      cancelAnimationFrame(raf);
+    };
   }, [onClose]);
 
   useEffect(() => {
@@ -323,6 +330,7 @@ export default function ChartModal({ chart, onClose }) {
 
     // Handle color change commands locally
     if (colorCmd) {
+      setChatMode("command");
       setColorOverrides((prev) => ({ ...prev, ...colorCmd }));
       const colorName = Object.values(colorCmd)[0];
       setMessages((prev) => [
@@ -331,6 +339,7 @@ export default function ChartModal({ chart, onClose }) {
       ]);
       setLoading(false);
     } else if (requestedType && ["bar", "pie", "line"].includes(chart.id)) {
+      setChatMode("command");
       setChartType(requestedType);
       const typeLabels = {
         bar: "bar chart", pie: "pie chart", line: "line chart",
@@ -344,6 +353,7 @@ export default function ChartModal({ chart, onClose }) {
       ]);
       setLoading(false);
     } else {
+      setChatMode("question");
       try {
         let dataSnippet;
         try {
@@ -1182,90 +1192,119 @@ RULES:
           </div>
         )}
 
-        {/* Body: chart left, chat right */}
-        <div className="modal-body-row">
+        {/* Body: chart left, chat right (question mode) OR chat below (command mode) */}
+        <div className={`modal-body-row ${chatMode === "question" ? "chat-right" : "chat-bottom"}`}>
           {/* Chart area */}
-          <div className="modal-chart-area">{renderChart()}</div>
+          <div className="modal-chart-area">{chartReady && renderChart()}</div>
 
-          {/* Chat sidebar */}
-          <div className="modal-chat-sidebar">
-            {/* AI chat log */}
-            <div className="modal-chat-log">
-              {messages.map((m, i) => (
-                <div key={i} className={`modal-msg modal-msg-${m.role}`}>
-                  {m.role === "ai" && <span className="modal-ai-label">AI</span>}
-                  <span className="modal-msg-text">{
-                    m.text.split('\n').map((line, j) => {
-                      const html = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-                      return <p key={j} dangerouslySetInnerHTML={{ __html: html }} />;
-                    })
-                  }</span>
-                </div>
-              ))}
-              {loading && (
-                <div className="modal-msg modal-msg-ai">
-                  <span className="modal-ai-label">AI</span>
-                  <span className="modal-thinking">
-                    <span />
-                    <span />
-                    <span />
-                  </span>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* AI input */}
-            <div className="modal-input-area">
-              {messages.length === 0 && (
-                <div className="modal-suggestions">
-                  <button className="modal-suggestion-btn" onClick={() => { setInput("What insights can you give me from this chart?"); }}>
-                    What insights can you give me from this chart?
-                  </button>
-                  <button className="modal-suggestion-btn" onClick={() => { setInput("Compare the highest and lowest values"); }}>
-                    Compare the highest and lowest values
-                  </button>
-                </div>
-              )}
-              <div className="modal-input-wrapper">
-                <div className="modal-input-icon">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                      stroke="#00c4ba"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-                <input
-                  ref={inputRef}
-                  className="modal-input"
-                  placeholder="Ask AI to modify this chart…"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKey}
-                />
-                <button
-                  className={`modal-send ${input.trim() ? "active" : ""}`}
-                  onClick={send}
-                  disabled={!input.trim() || loading}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
+          {/* Chat sidebar - visible only in question mode */}
+          {chatMode === "question" && (
+            <div className="modal-chat-sidebar">
+              <div className="modal-chat-log">
+                {messages.map((m, i) => (
+                  <div key={i} className={`modal-msg modal-msg-${m.role}`}>
+                    {m.role === "ai" && <span className="modal-ai-label">AI</span>}
+                    <span className="modal-msg-text">{
+                      m.text.split('\n').map((line, j) => {
+                        const html = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                        return <p key={j} dangerouslySetInnerHTML={{ __html: html }} />;
+                      })
+                    }</span>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="modal-msg modal-msg-ai">
+                    <span className="modal-ai-label">AI</span>
+                    <span className="modal-thinking">
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
               </div>
-              <p className="modal-input-hint">Enter to send · Esc to close</p>
             </div>
+          )}
+        </div>
+
+        {/* Command chat log - below chart, only in command mode */}
+        {chatMode === "command" && messages.length > 0 && (
+          <div className="modal-chat-log modal-chat-log-bottom">
+            {messages.map((m, i) => (
+              <div key={i} className={`modal-msg modal-msg-${m.role}`}>
+                {m.role === "ai" && <span className="modal-ai-label">AI</span>}
+                <span className="modal-msg-text">{
+                  m.text.split('\n').map((line, j) => {
+                    const html = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    return <p key={j} dangerouslySetInnerHTML={{ __html: html }} />;
+                  })
+                }</span>
+              </div>
+            ))}
+            {loading && (
+              <div className="modal-msg modal-msg-ai">
+                <span className="modal-ai-label">AI</span>
+                <span className="modal-thinking">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
+        )}
+
+        {/* AI input - always at bottom */}
+        <div className="modal-input-area">
+          {messages.length === 0 && (
+            <div className="modal-suggestions">
+              <button className="modal-suggestion-btn" onClick={() => { setInput("What insights can you give me from this chart?"); }}>
+                What insights can you give me from this chart?
+              </button>
+              <button className="modal-suggestion-btn" onClick={() => { setInput("Compare the highest and lowest values"); }}>
+                Compare the highest and lowest values
+              </button>
+            </div>
+          )}
+          <div className="modal-input-wrapper">
+            <div className="modal-input-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                  stroke="#00c4ba"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <input
+              ref={inputRef}
+              className="modal-input"
+              placeholder="Ask AI to modify this chart…"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKey}
+            />
+            <button
+              className={`modal-send ${input.trim() ? "active" : ""}`}
+              onClick={send}
+              disabled={!input.trim() || loading}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+          <p className="modal-input-hint">Enter to send · Esc to close</p>
         </div>
       </div>
     </div>

@@ -84,22 +84,22 @@ export default function CommandCenterPage() {
       <div className="cc-body">
         {/* Hero metrics */}
         <div className="cc-hero-row">
-          <div className="cc-hero-card">
+          <div className="cc-hero-card" style={{ background: `linear-gradient(135deg, ${colors[0]}, ${colors[0]}CC)` }}>
             <p className="cc-hero-label">NORTH STAR METRIC</p>
-            <p className="cc-hero-value cc-green">₹509.68 Cr</p>
-            <span className="cc-hero-badge">Pure Healthy Essence · Since 1893</span>
+            <p className="cc-hero-value" style={{ color: "#fff" }}>₹509.68 Cr</p>
+            <span className="cc-hero-badge" style={{ background: "rgba(0,0,0,0.2)", color: "#fff" }}>Pure Healthy Essence · Since 1893</span>
           </div>
-          <div className="cc-hero-card">
+          <div className="cc-hero-card" style={{ background: `linear-gradient(135deg, ${colors[1]}, ${colors[1]}CC)` }}>
             <p className="cc-hero-label">EBITDA margin</p>
-            <p className="cc-hero-value cc-red">12.88%</p>
+            <p className="cc-hero-value" style={{ color: "#fff" }}>12.88%</p>
             <p className="cc-hero-sub">FY2025 Reported</p>
           </div>
         </div>
 
         {/* 6 KPI cards */}
         <div className="cc-kpi-grid">
-          {KPI_CARDS.map((kpi) => (
-            <div className="cc-kpi-card" key={kpi.label}>
+          {KPI_CARDS.map((kpi, index) => (
+            <div className="cc-kpi-card" key={kpi.label} style={{ borderLeft: `5px solid ${colors[index % colors.length]}` }}>
               <p className="cc-kpi-label">{kpi.label}</p>
               <p className="cc-kpi-value">{kpi.value}</p>
               <p className={`cc-kpi-delta ${kpi.positive ? "cc-pos" : "cc-neg"}`}>
@@ -274,7 +274,7 @@ export default function CommandCenterPage() {
               <Line
                 type="monotone"
                 dataKey="vision"
-                stroke="#C62828"
+                stroke={colors[2] || "#C62828"}
                 strokeWidth={2}
                 strokeDasharray="6 4"
                 dot={false}
@@ -284,7 +284,7 @@ export default function CommandCenterPage() {
               <Line
                 type="monotone"
                 dataKey="actual"
-                stroke="#1565C0"
+                stroke={colors[3] || "#1565C0"}
                 strokeWidth={2.5}
                 dot={false}
                 name="Actual net revenue"

@@ -259,8 +259,30 @@
 
 .panels {
   display: grid;
-  grid-template-columns: 300px 1fr 360px;
+  grid-template-columns: 300px 1fr 6px 360px;
   flex: 1;
   overflow: hidden;
   gap: 0;
+}
+
+/* Resize handle between Chat and Insights */
+.panel-resize-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  z-index: 5;
+  background: transparent;
+}
+.panel-resize-handle:hover .panel-resize-grip,
+.panel-resize-handle:active .panel-resize-grip {
+  background: #00c4ba;
+  height: 60px;
+}
+.panel-resize-grip {
+  width: 3px;
+  height: 40px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.2);
+  transition: background 0.2s, height 0.2s;
 }

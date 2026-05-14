@@ -65,9 +65,10 @@
 }
 
 .avatar-assistant {
-  background: linear-gradient(135deg, #6F4E37, #A0785A);
-  color: #fff;
-  box-shadow: 0 0 8px rgba(111, 78, 55, 0.5);
+  background: #0a0a0a;
+  color: #F5C842;
+  box-shadow: 0 0 8px rgba(245, 200, 66, 0.3);
+  border: 1.5px solid #B8860B;
 }
 
 .avatar-user {
@@ -105,11 +106,61 @@
 .message-bubble p + p { margin-top: 4px; }
 .message-bubble strong { color: #80dbd8; font-weight: 600; }
 
+.message-bubble .chat-h2 { font-size: 14px; font-weight: 700; color: #80dbd8; margin: 10px 0 4px; }
+.message-bubble .chat-h3 { font-size: 13px; font-weight: 600; color: #80dbd8; margin: 8px 0 3px; }
+.message-bubble .chat-h4 { font-size: 12px; font-weight: 600; color: #b0dbd9; margin: 6px 0 2px; }
+.message-bubble .chat-table-line { font-family: monospace; font-size: 11px; white-space: pre; margin: 1px 0; color: #d8f5f4; }
+.message-bubble .chat-bullet { padding-left: 10px; margin: 2px 0; }
+.message-bubble .chat-hr { border: none; border-top: 1px solid #005a5680; margin: 6px 0; }
+
+.message-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .message-time {
   font-size: 10.5px;
   color: #80c0be;
   padding: 0 4px;
 }
+
+/* Voice button on AI messages */
+.voice-btn {
+  background: none;
+  border: none;
+  color: #80c0be;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s, background 0.2s;
+}
+.message:hover .voice-btn { opacity: 1; }
+.voice-btn:hover { color: #80dbd8; background: #005a5640; }
+.voice-active { opacity: 1; color: #F5C842; animation: voice-pulse 1s infinite; }
+@keyframes voice-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* Mic button */
+.mic-btn {
+  background: none;
+  border: none;
+  color: #80c0be;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+.mic-btn:hover { color: #d8f5f4; background: #005a5640; }
+.mic-active {
+  color: #fc5252;
+  animation: mic-pulse 1s infinite;
+}
+@keyframes mic-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.1); } }
 
 /* Thinking dots */
 .thinking {
@@ -228,4 +279,17 @@
 .light .send-btn { background: #F5F5F0; color: #757575; }
 .light .send-btn.active { background: #2E7B34; color: #fff; }
 .light .send-btn.active:hover { background: #256829; }
+.light .mic-btn { color: #757575; }
+.light .mic-btn:hover { color: #1A1A1A; background: #E0E0D8; }
+.light .mic-active { color: #fc5252; }
+.light .voice-btn { color: #999; }
+.light .voice-btn:hover { color: #333; background: #E0E0D8; }
+.light .voice-active { color: #D4880F; }
 .light .input-hint { color: #757575; }
+.light .avatar-assistant { background: #fff; border-color: #D4A017; box-shadow: 0 0 6px rgba(212,160,23,0.25); }
+.light .message-bubble strong { color: #1A6B5A; }
+.light .message-bubble .chat-h2,
+.light .message-bubble .chat-h3 { color: #1A6B5A; }
+.light .message-bubble .chat-h4 { color: #555; }
+.light .message-bubble .chat-table-line { color: #333; }
+.light .message-bubble .chat-hr { border-top-color: #E0E0D8; }
