@@ -13,12 +13,21 @@ import {
   Cell,
   XAxis,
   YAxis,
+  ZAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Legend,
   ReferenceLine,
   LabelList,
+  Treemap,
+  ScatterChart,
+  Scatter,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
 } from "recharts";
 import { useTheme } from "../ThemeContext.jsx";
 import { askAI } from "../services/aiService.js";
@@ -207,6 +216,7 @@ export default function ChartModal({ chart, onClose }) {
   const [activeSlice, setActiveSlice] = useState(null);
   const [runwayStage, setRunwayStage] = useState(0);
   const [chartType, setChartType] = useState(chart.id);
+  const [colorOverrides, setColorOverrides] = useState({});
   const inputRef = useRef();
   const messagesEndRef = useRef();
 
@@ -245,11 +255,58 @@ export default function ChartModal({ chart, onClose }) {
     setActiveSlice(null);
   }, [chart.id]);
 
+  const COLOR_MAP = {
+    red: "#E53935", crimson: "#DC143C", maroon: "#800000",
+    blue: "#1E88E5", navy: "#001F5C", skyblue: "#87CEEB", "sky blue": "#87CEEB",
+    green: "#43A047", lime: "#CDDC39", emerald: "#50C878",
+    orange: "#FB8C00", amber: "#FFC107",
+    yellow: "#FFEB3B", gold: "#FFD700",
+    purple: "#8E24AA", violet: "#7B1FA2", indigo: "#3F51B5",
+    pink: "#EC407A", magenta: "#E91E63",
+    teal: "#00897B", cyan: "#00BCD4", turquoise: "#40E0D0",
+    brown: "#795548", tan: "#D2B48C",
+    black: "#212121", grey: "#9E9E9E", gray: "#9E9E9E", white: "#FAFAFA",
+    coral: "#FF7043", salmon: "#FA8072", peach: "#FFAB91",
+  };
+
+  const parseColorCommand = (text) => {
+    const lower = text.toLowerCase();
+    // Match patterns like "change bar to red", "make revenue red", "bar color red", "change color to #FF0000"
+    const hexMatch = lower.match(/#([0-9a-f]{3,6})\b/);
+    const colorNames = Object.keys(COLOR_MAP).join("|");
+    const targetRe = new RegExp(`(?:change|make|set)\\s+(?:the\\s+)?(?:(bar|line|pie|revenue|target|first|second|1st|2nd|all|chart|background)\\s+)?(?:color\\s+)?(?:to\\s+|color\\s+)?(${colorNames}|#[0-9a-f]{3,6})`, "i");
+    const match = lower.match(targetRe);
+    if (!match && !hexMatch) return null;
+
+    const colorToken = match ? match[2] : hexMatch[0];
+    const resolvedColor = colorToken.startsWith("#") ? colorToken : COLOR_MAP[colorToken];
+    if (!resolvedColor) return null;
+
+    const target = match?.[1] || "all";
+    const result = {};
+    if (["revenue", "bar", "first", "1st"].includes(target)) {
+      result.primary = resolvedColor;
+    } else if (["target", "second", "2nd"].includes(target)) {
+      result.secondary = resolvedColor;
+    } else {
+      result.primary = resolvedColor;
+    }
+    return result;
+  };
+
   const parseChartCommand = (text) => {
     const lower = text.toLowerCase();
     if (/\b(pie|donut|doughnut)\b/.test(lower)) return "pie";
     if (/\b(line|trend)\b/.test(lower)) return "line";
     if (/\b(bar|column|histogram)\b/.test(lower)) return "bar";
+    if (/\b(tree\s*map)\b/.test(lower)) return "treemap";
+    if (/\b(scatter|dot\s*plot)\b/.test(lower)) return "scatter";
+    if (/\b(radar|spider|web)\b/.test(lower)) return "radar";
+    if (/\b(pyramid|population)\b/.test(lower)) return "pyramid";
+    if (/\b(rank|ranking|horizontal\s*bar)\b/.test(lower)) return "rank";
+    if (/\b(heat\s*map|heatmap)\b/.test(lower)) return "heatmap";
+    if (/\b(gauge|meter|speedometer)\b/.test(lower)) return "gauge";
+    if (/\b(funnel)\b/.test(lower)) return "funnel";
     return null;
   };
 
@@ -262,13 +319,28 @@ export default function ChartModal({ chart, onClose }) {
     setLoading(true);
 
     const requestedType = parseChartCommand(text);
+    const colorCmd = parseColorCommand(text);
 
-    if (requestedType && ["bar", "pie", "line"].includes(chart.id)) {
-      setChartType(requestedType);
-      const typeLabels = { bar: "bar chart", pie: "pie chart", line: "line chart" };
+    // Handle color change commands locally
+    if (colorCmd) {
+      setColorOverrides((prev) => ({ ...prev, ...colorCmd }));
+      const colorName = Object.values(colorCmd)[0];
       setMessages((prev) => [
         ...prev,
-        { role: "ai", text: `Done — switched to ${typeLabels[requestedType]}. You can ask me to change it again anytime.` },
+        { role: "ai", text: `Done — chart color updated to **${colorName}**.` },
+      ]);
+      setLoading(false);
+    } else if (requestedType && ["bar", "pie", "line"].includes(chart.id)) {
+      setChartType(requestedType);
+      const typeLabels = {
+        bar: "bar chart", pie: "pie chart", line: "line chart",
+        treemap: "treemap", scatter: "scatter plot", radar: "radar chart",
+        pyramid: "population pyramid", rank: "rank chart", heatmap: "heat map",
+        gauge: "gauge chart", funnel: "funnel chart",
+      };
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", text: `Done — switched to ${typeLabels[requestedType] || requestedType}. You can ask me to change it again anytime.` },
       ]);
       setLoading(false);
     } else {
@@ -278,7 +350,13 @@ export default function ChartModal({ chart, onClose }) {
           const d = Array.isArray(chart.data) ? chart.data.slice(0, 6) : { summary: chart.title };
           dataSnippet = JSON.stringify(d);
         } catch { dataSnippet = chart.title; }
-        const systemPrompt = `You are a helpful data analyst assistant for Amrutanjan Health Care Ltd dashboard. The user is viewing a chart titled "${chart.title}". The chart data: ${dataSnippet}. Answer concisely about the data, trends, or suggestions. You can also help change chart types (bar, pie, line). Keep answers short (2-4 sentences).`;
+        const systemPrompt = `You are a strict financial data analyst assistant for Amrutanjan Health Care Ltd dashboard. The user is viewing a chart titled "${chart.title}". The chart data: ${dataSnippet}.
+
+RULES:
+- ONLY answer questions related to finance, revenue, sales, costs, profit, business metrics, chart data, trends, and financial analysis.
+- If the user asks anything unrelated to finance or business data (e.g. jokes, recipes, general knowledge, personal questions, coding), reply EXACTLY: "I can only assist with financial data and chart analysis. Please ask me about the data, trends, or chart modifications."
+- You can help change chart types (bar, pie, line) and chart colors.
+- Keep answers short (2-4 sentences). Be precise with numbers from the data.`;
         const reply = await askAI(newMessages, systemPrompt);
         setMessages((prev) => [...prev, { role: "ai", text: reply }]);
       } catch (err) {
@@ -308,7 +386,11 @@ export default function ChartModal({ chart, onClose }) {
   const renderChart = () => {
     // For bar/pie/line charts, use dynamic chartType
     const effectiveType = ["bar", "pie", "line"].includes(chart.id) ? chartType : chart.id;
-    const tplColors = globalColors;
+    const tplColors = [
+      colorOverrides.primary || globalColors[0],
+      colorOverrides.secondary || globalColors[1],
+      ...globalColors.slice(2),
+    ];
 
     if (effectiveType === "bar") {
       // Render bar chart from any source data
@@ -559,6 +641,211 @@ export default function ChartModal({ chart, onClose }) {
             <Line type="monotone" dataKey="otc" stroke={tplColors[0]} strokeWidth={2.5} dot={{ fill: tplColors[0], r: 4 }} name="otc" />
             {hasSecondLine && <Line type="monotone" dataKey="comfy" stroke={tplColors[1]} strokeWidth={2.5} dot={{ fill: tplColors[1], r: 4 }} name="comfy" />}
           </LineChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    // Helper: normalize chart data to a common { name, value } format
+    const getNormalizedData = () => {
+      if (chart.id === "bar") return chart.data.map((d) => ({ name: d.quarter, value: d.revenue, value2: d.target }));
+      if (chart.id === "pie") return chart.data.map((d) => ({ name: d.name, value: d.value }));
+      if (chart.id === "line") return chart.data.map((d) => ({ name: d.year, value: d.otc, value2: d.comfy }));
+      if (Array.isArray(chart.data)) return chart.data.map((d) => ({ name: d.name || d.quarter || d.year || d.label || "Item", value: d.value || d.revenue || d.otc || 0, value2: d.target || d.comfy || null }));
+      return [];
+    };
+
+    if (effectiveType === "treemap") {
+      const data = getNormalizedData();
+      const treemapData = [{
+        name: chart.title,
+        children: data.map((d, i) => ({ name: d.name, size: Math.abs(d.value), fill: tplColors[i % tplColors.length] })),
+      }];
+      const TreemapContent = ({ x, y, width, height, name, fill }) => {
+        if (width < 30 || height < 20) return null;
+        return (
+          <g>
+            <rect x={x} y={y} width={width} height={height} rx={4} fill={fill || tplColors[0]} stroke="#fff" strokeWidth={2} />
+            <text x={x + width / 2} y={y + height / 2 - 6} textAnchor="middle" fill="#fff" fontSize={12} fontWeight={600}>{name}</text>
+            <text x={x + width / 2} y={y + height / 2 + 10} textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize={11}>
+              {data.find((d) => d.name === name)?.value}
+            </text>
+          </g>
+        );
+      };
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <Treemap data={treemapData} dataKey="size" nameKey="name" aspectRatio={4 / 3} content={<TreemapContent />}>
+            <Tooltip formatter={(v) => [`₹${v} Cr`, "Value"]} contentStyle={{ background: "#FFFFFF", border: "1px solid #E0E0D8", borderRadius: 8, fontSize: 13 }} />
+          </Treemap>
+        </ResponsiveContainer>
+      );
+    }
+
+    if (effectiveType === "scatter") {
+      const data = getNormalizedData();
+      const scatterData = data.map((d, i) => ({ x: i + 1, y: d.value, z: d.value2 || d.value, name: d.name }));
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <ScatterChart margin={{ top: 16, right: 24, bottom: 8, left: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+            <XAxis dataKey="x" name="Index" tick={{ fill: "#757575", fontSize: 13 }} axisLine={false} tickLine={false} />
+            <YAxis dataKey="y" name="Value" tick={{ fill: "#757575", fontSize: 13 }} axisLine={false} tickLine={false} />
+            <ZAxis dataKey="z" range={[80, 400]} />
+            <Tooltip contentStyle={{ background: "#FFFFFF", border: "1px solid #E0E0D8", borderRadius: 8, fontSize: 13 }} formatter={(v, name) => [`₹${v} Cr`, name]} />
+            <Legend wrapperStyle={{ paddingTop: 16, fontSize: 13 }} />
+            <Scatter name="Data" data={scatterData} fill={tplColors[0]} isAnimationActive animationDuration={500}>
+              {scatterData.map((_, i) => <Cell key={i} fill={tplColors[i % tplColors.length]} />)}
+            </Scatter>
+          </ScatterChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    if (effectiveType === "radar") {
+      const data = getNormalizedData();
+      const radarData = data.map((d) => ({ subject: d.name, A: d.value, B: d.value2 || 0, fullMark: Math.max(...data.map((x) => x.value)) * 1.2 }));
+      const hasB = data.some((d) => d.value2 != null);
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+            <PolarGrid stroke="rgba(0,0,0,0.1)" />
+            <PolarAngleAxis dataKey="subject" tick={{ fill: "#757575", fontSize: 12 }} />
+            <PolarRadiusAxis tick={{ fill: "#999", fontSize: 11 }} axisLine={false} />
+            <Tooltip contentStyle={{ background: "#FFFFFF", border: "1px solid #E0E0D8", borderRadius: 8, fontSize: 13 }} />
+            <Legend wrapperStyle={{ paddingTop: 16, fontSize: 13 }} />
+            <Radar name="Revenue" dataKey="A" stroke={tplColors[0]} fill={tplColors[0]} fillOpacity={0.35} strokeWidth={2} isAnimationActive animationDuration={500} />
+            {hasB && <Radar name="Target" dataKey="B" stroke={tplColors[1]} fill={tplColors[1]} fillOpacity={0.2} strokeWidth={2} isAnimationActive animationDuration={500} />}
+          </RadarChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    if (effectiveType === "pyramid") {
+      const data = getNormalizedData();
+      const pyramidData = data.map((d) => ({
+        name: d.name,
+        left: -(d.value2 || d.value * 0.9),
+        right: d.value,
+      }));
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={pyramidData} layout="vertical" stackOffset="sign" margin={{ top: 16, right: 24, bottom: 8, left: 80 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" horizontal={false} />
+            <XAxis type="number" tick={{ fill: "#757575", fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(v) => Math.abs(v)} />
+            <YAxis type="category" dataKey="name" tick={{ fill: "#757575", fontSize: 13 }} axisLine={false} tickLine={false} width={70} />
+            <Tooltip contentStyle={{ background: "#FFFFFF", border: "1px solid #E0E0D8", borderRadius: 8, fontSize: 13 }} formatter={(v) => `₹${Math.abs(v)} Cr`} />
+            <Legend wrapperStyle={{ paddingTop: 16, fontSize: 13 }} />
+            <ReferenceLine x={0} stroke="#999" />
+            <Bar dataKey="left" fill={tplColors[1]} name="Target" radius={[4, 0, 0, 4]} isAnimationActive animationDuration={500} />
+            <Bar dataKey="right" fill={tplColors[0]} name="Revenue" radius={[0, 4, 4, 0]} isAnimationActive animationDuration={500} />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    if (effectiveType === "rank") {
+      const data = getNormalizedData().sort((a, b) => b.value - a.value);
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} layout="vertical" margin={{ top: 16, right: 24, bottom: 8, left: 80 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" horizontal={false} />
+            <XAxis type="number" tick={{ fill: "#757575", fontSize: 13 }} axisLine={false} tickLine={false} />
+            <YAxis type="category" dataKey="name" tick={{ fill: "#757575", fontSize: 13 }} axisLine={false} tickLine={false} width={70} />
+            <Tooltip contentStyle={{ background: "#FFFFFF", border: "1px solid #E0E0D8", borderRadius: 8, fontSize: 13 }} formatter={(v) => [`₹${v} Cr`, "Value"]} />
+            <Bar dataKey="value" name="Value" radius={[0, 6, 6, 0]} isAnimationActive animationDuration={500}>
+              {data.map((_, i) => <Cell key={i} fill={tplColors[i % tplColors.length]} />)}
+              <LabelList dataKey="value" position="right" fill="#757575" fontSize={12} formatter={(v) => `₹${v}`} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    if (effectiveType === "heatmap") {
+      const data = getNormalizedData();
+      const maxVal = Math.max(...data.map((d) => d.value));
+      const cols = Math.ceil(Math.sqrt(data.length));
+      return (
+        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 6, width: "100%", maxWidth: 500 }}>
+            {data.map((d, i) => {
+              const intensity = d.value / maxVal;
+              const bg = tplColors[0];
+              return (
+                <div key={i} style={{
+                  background: bg,
+                  opacity: 0.25 + intensity * 0.75,
+                  borderRadius: 8,
+                  padding: "18px 12px",
+                  textAlign: "center",
+                  color: intensity > 0.5 ? "#fff" : "#333",
+                  transition: "all 0.3s",
+                  cursor: "default",
+                }}
+                title={`${d.name}: ₹${d.value} Cr`}>
+                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>{d.name}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>₹{d.value}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: 11, color: "#999", marginTop: 8 }}>Color intensity = relative value</div>
+        </div>
+      );
+    }
+
+    if (effectiveType === "gauge") {
+      const data = getNormalizedData();
+      const total = data.reduce((s, d) => s + d.value, 0);
+      const avg = total / data.length;
+      const maxVal = Math.max(...data.map((d) => d.value));
+      const pct = Math.round((avg / maxVal) * 100);
+      const gaugeData = [
+        { name: "Value", value: pct },
+        { name: "Remaining", value: 100 - pct },
+      ];
+      return (
+        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <ResponsiveContainer width="100%" height="70%">
+            <PieChart>
+              <Pie
+                data={gaugeData}
+                cx="50%"
+                cy="65%"
+                startAngle={180}
+                endAngle={0}
+                innerRadius="55%"
+                outerRadius="85%"
+                paddingAngle={0}
+                dataKey="value"
+                isAnimationActive
+                animationDuration={600}
+              >
+                <Cell fill={tplColors[0]} />
+                <Cell fill="#E0E0E0" />
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+          <div style={{ marginTop: -40, textAlign: "center" }}>
+            <div style={{ fontSize: 36, fontWeight: 700, color: tplColors[0] }}>{pct}%</div>
+            <div style={{ fontSize: 13, color: "#757575" }}>Avg ₹{avg.toFixed(1)} Cr of max ₹{maxVal} Cr</div>
+          </div>
+        </div>
+      );
+    }
+
+    if (effectiveType === "funnel") {
+      const data = getNormalizedData().sort((a, b) => b.value - a.value);
+      const funnelColors = tplColors;
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <FunnelChart>
+            <Tooltip formatter={(v) => [`₹${v} Cr`, "Value"]} contentStyle={{ background: "#FFFFFF", border: "1px solid #E0E0D8", borderRadius: 8, fontSize: 13 }} />
+            <Funnel data={data} dataKey="value" nameKey="name" isAnimationActive animationDuration={600} stroke="#fff" strokeWidth={1}>
+              {data.map((_, i) => <Cell key={i} fill={funnelColors[i % funnelColors.length]} />)}
+              <LabelList dataKey="name" position="center" fill="#fff" stroke="none" fontSize={12} fontWeight={600} />
+            </Funnel>
+          </FunnelChart>
         </ResponsiveContainer>
       );
     }
@@ -895,86 +1182,90 @@ export default function ChartModal({ chart, onClose }) {
           </div>
         )}
 
-        {/* Chart area */}
-        <div className="modal-chart-area">{renderChart()}</div>
+        {/* Body: chart left, chat right */}
+        <div className="modal-body-row">
+          {/* Chart area */}
+          <div className="modal-chart-area">{renderChart()}</div>
 
-        {/* AI chat log */}
-        {messages.length > 0 && (
-          <div className="modal-chat-log">
-            {messages.map((m, i) => (
-              <div key={i} className={`modal-msg modal-msg-${m.role}`}>
-                {m.role === "ai" && <span className="modal-ai-label">AI</span>}
-                <span className="modal-msg-text">{
-                  m.text.split('\n').map((line, j) => {
-                    const html = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-                    return <p key={j} dangerouslySetInnerHTML={{ __html: html }} />;
-                  })
-                }</span>
-              </div>
-            ))}
-            {loading && (
-              <div className="modal-msg modal-msg-ai">
-                <span className="modal-ai-label">AI</span>
-                <span className="modal-thinking">
-                  <span />
-                  <span />
-                  <span />
-                </span>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
+          {/* Chat sidebar */}
+          <div className="modal-chat-sidebar">
+            {/* AI chat log */}
+            <div className="modal-chat-log">
+              {messages.map((m, i) => (
+                <div key={i} className={`modal-msg modal-msg-${m.role}`}>
+                  {m.role === "ai" && <span className="modal-ai-label">AI</span>}
+                  <span className="modal-msg-text">{
+                    m.text.split('\n').map((line, j) => {
+                      const html = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                      return <p key={j} dangerouslySetInnerHTML={{ __html: html }} />;
+                    })
+                  }</span>
+                </div>
+              ))}
+              {loading && (
+                <div className="modal-msg modal-msg-ai">
+                  <span className="modal-ai-label">AI</span>
+                  <span className="modal-thinking">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
 
-        {/* AI input */}
-        <div className="modal-input-area">
-          {messages.length === 0 && (
-            <div className="modal-suggestions">
-              <button className="modal-suggestion-btn" onClick={() => { setInput("What insights can you give me from this chart?"); }}>
-                What insights can you give me from this chart?
-              </button>
-              <button className="modal-suggestion-btn" onClick={() => { setInput("Compare the highest and lowest values"); }}>
-                Compare the highest and lowest values
-              </button>
-            </div>
-          )}
-          <div className="modal-input-wrapper">
-            <div className="modal-input-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                  stroke="#00c4ba"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            {/* AI input */}
+            <div className="modal-input-area">
+              {messages.length === 0 && (
+                <div className="modal-suggestions">
+                  <button className="modal-suggestion-btn" onClick={() => { setInput("What insights can you give me from this chart?"); }}>
+                    What insights can you give me from this chart?
+                  </button>
+                  <button className="modal-suggestion-btn" onClick={() => { setInput("Compare the highest and lowest values"); }}>
+                    Compare the highest and lowest values
+                  </button>
+                </div>
+              )}
+              <div className="modal-input-wrapper">
+                <div className="modal-input-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                      stroke="#00c4ba"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <input
+                  ref={inputRef}
+                  className="modal-input"
+                  placeholder="Ask AI to modify this chart…"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKey}
                 />
-              </svg>
+                <button
+                  className={`modal-send ${input.trim() ? "active" : ""}`}
+                  onClick={send}
+                  disabled={!input.trim() || loading}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <p className="modal-input-hint">Enter to send · Esc to close</p>
             </div>
-            <input
-              ref={inputRef}
-              className="modal-input"
-              placeholder="Ask AI to modify this chart… e.g. 'change bar color to teal' or 'add a trend line'"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKey}
-            />
-            <button
-              className={`modal-send ${input.trim() ? "active" : ""}`}
-              onClick={send}
-              disabled={!input.trim() || loading}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
           </div>
-          <p className="modal-input-hint">Enter to send · Esc to close</p>
         </div>
       </div>
     </div>
