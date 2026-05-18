@@ -23,16 +23,22 @@ export async function askAI(messages, systemPrompt, maxTokens) {
     headers["api-key"] = API_KEY;
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
   let res;
   try {
     res = await fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(body),
+      signal: controller.signal,
     });
   } catch (networkErr) {
     console.error("Network error calling AI:", networkErr);
     throw new Error("AI network error");
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   if (!res.ok) {

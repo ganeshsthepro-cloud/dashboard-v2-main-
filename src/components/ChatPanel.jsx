@@ -40,27 +40,63 @@ const buildAssistantReply = (question) => {
     ? `I checked ${sources.length} source${sources.length > 1 ? 's' : ''}${sourceNames.length ? ` (e.g. **${sourceNames.join(', ')}**)` : ''}.\n\n`
     : ''
 
-  if (q.includes('top') || q.includes('insight') || q.includes('summary')) {
-    return `${sourcePrefix}Top AHCL FY25 insights:\n\n1. **Revenue:** ₹451.82 Cr\n2. **Gross Profit:** ₹229 Cr\n3. **EBITDA (Earnings Before Interest, Tax, Depreciation and Amortization):** ₹58 Cr (12.88% margin)\n4. **PBT (Profit Before Tax):** ₹69 Cr\n5. **PAT (Profit After Tax):** ₹51 Cr and **EPS (Earnings Per Share):** ₹17.58/share`
+  if (q.includes('top') || q.includes('insight') || q.includes('summary') || q.includes('highlight') || q.includes('overview')) {
+    return `${sourcePrefix}Top AHCL FY25 insights:\n\n1. **Revenue:** ₹451.82 Cr (+7.3% YoY)\n2. **Gross Profit:** ₹229 Cr (Gross Margin 50.69%)\n3. **EBITDA:** ₹58 Cr (12.88% margin)\n4. **PBT:** ₹69 Cr (15.27% margin)\n5. **PAT:** ₹51 Cr (Net Margin 11.29%)\n6. **EPS:** ₹17.58/share (+13.4% YoY)\n7. **ROCE:** 21.44%`
   }
 
-  if (q.includes('revenue') || q.includes('segment') || q.includes('mix')) {
-    return `${sourcePrefix}AHCL revenue mix used in dashboard:\n\n1. **Over-The-Counter (OTC) Products:** ₹290 Cr\n2. **Women\'s Hygiene:** ₹124 Cr\n3. **Beverages:** ₹36 Cr\n4. **Others & Other Income:** ₹2 Cr\n\nTotal = **₹452 Cr**.`
+  if (q.includes('p&l') || q.includes('p & l') || q.includes('profit and loss') || q.includes('income statement')) {
+    return `${sourcePrefix}**AHCL P&L Statement FY25:**\n\n1. **Revenue:** ₹451.82 Cr\n2. **COGS:** ₹222.82 Cr\n3. **Gross Profit:** ₹229 Cr (Margin: 50.69%)\n4. **Operating Expenses:** Employee ₹59.1L, Rent ₹18L, Depreciation ₹24L, Utilities ₹6.5L, Marketing ₹32L\n5. **EBITDA:** ₹58 Cr (12.88%)\n6. **Other Income:** ₹18 Cr\n7. **PBT:** ₹69 Cr (15.27%)\n8. **Tax:** ₹18 Cr\n9. **PAT:** ₹51 Cr (Net Margin: 11.29%)\n10. **EPS:** ₹17.58/share`
   }
 
-  if (q.includes('roce') || q.includes('return on capital employed') || q.includes('otc')) {
-    return `${sourcePrefix}Full-form KPI labels:\n\n1. **OTC:** Over-The-Counter\n2. **ROCE:** Return on Capital Employed\n3. **EPS:** Earnings Per Share\n4. **PBT:** Profit Before Tax\n5. **PAT:** Profit After Tax`
+  if (q.includes('revenue') || q.includes('segment') || q.includes('mix') || q.includes('sales')) {
+    return `${sourcePrefix}AHCL revenue mix FY25:\n\n1. **OTC Products:** ₹290 Cr (64.18%)\n2. **Women's Hygiene (Comfy):** ₹124 Cr (27.44%)\n3. **Beverages:** ₹36 Cr (7.97%)\n4. **Others & Other Income:** ₹2 Cr (0.41%)\n\nTotal = **₹451.82 Cr** (+7.3% YoY).`
+  }
+
+  if (q.includes('compare') || q.includes('highest') || q.includes('lowest') || q.includes('best') || q.includes('worst')) {
+    return `${sourcePrefix}**Segment comparison FY25:**\n\n- **Highest revenue:** OTC Products at ₹290 Cr (64.18% of total)\n- **Lowest revenue:** Others & Other Income at ₹2 Cr (0.41%)\n- **Highest margin:** OTC Gross Margin at 55.24%\n- **Fastest growing:** Beverages segment\n\nOTC is **145x** the size of the Others segment.`
+  }
+
+  if (q.includes('cost') || q.includes('cogs') || q.includes('expense') || q.includes('opex')) {
+    return `${sourcePrefix}**AHCL Cost Structure FY25:**\n\n1. **COGS:** ₹222.82 Cr (49.31% of revenue)\n2. **Employee Cost:** ₹59.1L\n3. **Marketing:** ₹32L\n4. **Depreciation:** ₹24L\n5. **Rent:** ₹18L\n6. **Utilities:** ₹6.5L\n\n**Gross Margin:** 50.69% | **EBITDA Margin:** 12.88%`
+  }
+
+  if (q.includes('roce') || q.includes('return on capital') || q.includes('ratio') || q.includes('kpi')) {
+    return `${sourcePrefix}**Key Financial Ratios FY25:**\n\n1. **Gross Margin:** 50.69% (OTC: 55.24%)\n2. **EBITDA Margin:** 12.88%\n3. **PBT Margin:** 15.27%\n4. **Net Margin:** 11.29%\n5. **ROCE:** 21.44% (-33 bps YoY)\n6. **EPS:** ₹17.58/share (+13.4% YoY)`
+  }
+
+  if (q.includes('otc') || q.includes('over the counter') || q.includes('pain')) {
+    return `${sourcePrefix}**OTC Segment FY25:**\n\n- **Revenue:** ₹290 Cr (64.18% of total)\n- **Gross Margin:** 55.24% (down 870bp vs FY16)\n- **Key products:** Pain management (48%), Headache (27%), Cold & Congestion (15%), Others (10%)\n- **Margin compression** driven by raw material cost inflation (menthol, camphor, eucalyptus oil)`
+  }
+
+  if (q.includes('comfy') || q.includes('hygiene') || q.includes('women')) {
+    return `${sourcePrefix}**Women's Hygiene (Comfy) FY25:**\n\n- **Revenue:** ₹124 Cr (27.44% of total)\n- **Sub-segments:** Sanitary Pads (63%), Panty Liners (22%), Tampons (9%), Others (6%)\n- **Growth lever:** Captive plant launch in FY26 (Hyderabad) to eliminate ₹40-55 Cr outsourcing premium`
+  }
+
+  if (q.includes('beverage') || q.includes('drink')) {
+    return `${sourcePrefix}**Beverages Segment FY25:**\n\n- **Revenue:** ₹36 Cr (7.97% of total)\n- **Sub-segments:** Fruit Pulp Drinks (58%), Health Drinks (29%), Others (13%)\n- Smallest of the three main segments but growing`
+  }
+
+  if (q.includes('eps') || q.includes('earning')) {
+    return `${sourcePrefix}**Earnings Per Share FY25:** ₹17.58/share (+13.4% YoY)\n\n**PAT:** ₹51 Cr | **Net Margin:** 11.29%`
   }
 
   if (q.includes('ebitda') || q.includes('margin') || q.includes('profit')) {
-    return `${sourcePrefix}Profit bridge FY25:\n\n1. **Revenue:** ₹452 Cr\n2. **Gross Profit:** ₹229 Cr\n3. **EBITDA:** ₹58 Cr\n4. **D&A:** ₹7 Cr\n5. **Other Income:** ₹18 Cr\n6. **PBT:** ₹69 Cr\n7. **Tax:** ₹18 Cr\n8. **PAT:** ₹51 Cr`
+    return `${sourcePrefix}Profit bridge FY25:\n\n1. **Revenue:** ₹451.82 Cr\n2. **Gross Profit:** ₹229 Cr (50.69%)\n3. **EBITDA:** ₹58 Cr (12.88%)\n4. **D&A:** ₹7 Cr\n5. **Other Income:** ₹18 Cr\n6. **PBT:** ₹69 Cr (15.27%)\n7. **Tax:** ₹18 Cr\n8. **PAT:** ₹51 Cr (11.29%)`
   }
 
-  if (q.includes('sankey') || q.includes('cash flow') || q.includes('cashflow')) {
-    return `${sourcePrefix}Sankey corrections now applied:\n\n1. **Freight cost removed** as separate node (inside Other Expenses).\n2. **Women\'s Hygiene = ₹124 Cr**.\n3. **Others & Other Income = ₹2 Cr**.\n4. **Other Income ₹18 Cr** shown as separate inflow into PBT.\n5. **EPS labeled per share** as ₹17.58/share.`
+  if (q.includes('sankey') || q.includes('cash flow') || q.includes('cashflow') || q.includes('flow')) {
+    return `${sourcePrefix}**AHCL Cash Flow Summary FY25:**\n\n1. **Revenue:** ₹451.82 Cr\n2. **COGS:** ₹222.82 Cr\n3. **Gross Profit:** ₹229 Cr\n4. **OpEx deducted** to arrive at EBITDA: ₹58 Cr\n5. **Other Income:** ₹18 Cr added\n6. **PBT:** ₹69 Cr\n7. **Tax:** ₹18 Cr\n8. **PAT:** ₹51 Cr`
   }
 
-  return `${sourcePrefix}I could not find an exact rule-based answer for this question.\n\nThis chat is currently template-based. Connect your LLM API to get real dynamic responses from your uploaded sources.`
+  if (q.includes('growth') || q.includes('trend') || q.includes('yoy') || q.includes('year')) {
+    return `${sourcePrefix}**AHCL Growth Metrics FY25:**\n\n- **Revenue growth:** +7.3% YoY\n- **EPS growth:** +13.4% YoY\n- **ROCE change:** -33 bps YoY (21.44%)\n- **OTC Gross Margin erosion:** -870bp since FY16\n- **Vision gap:** FY21 33% CAGR target implied ₹1,037 Cr by FY25, actual ₹451.82 Cr (₹586 Cr shortfall)`
+  }
+
+  if (q.includes('tax')) {
+    return `${sourcePrefix}**Tax FY25:**\n\n- **PBT:** ₹69 Cr\n- **Tax:** ₹18 Cr\n- **Effective tax rate:** ~26.1%\n- **PAT (after tax):** ₹51 Cr`
+  }
+
+  return `${sourcePrefix}**AHCL FY25 Quick Summary:**\n\n- **Revenue:** ₹451.82 Cr | **Gross Profit:** ₹229 Cr | **EBITDA:** ₹58 Cr\n- **PBT:** ₹69 Cr | **PAT:** ₹51 Cr | **EPS:** ₹17.58/share\n- **Segments:** OTC ₹290 Cr, Comfy ₹124 Cr, Beverages ₹36 Cr\n\nTry asking about: revenue mix, P&L statement, margins, ROCE, OTC segment, Comfy, costs, growth trends, or comparisons.`
 }
 
 import datamochaLogo from "../assets/datamocha-logo.svg";

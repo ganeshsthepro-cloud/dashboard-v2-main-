@@ -208,6 +208,55 @@ const SankeyColoredLink = (props) => {
   return <path d={path} fill={color} fillOpacity={0.4} stroke="none" />;
 };
 
+const buildLocalChartReply = (question, chart) => {
+  const q = question.toLowerCase();
+  const data = Array.isArray(chart.data) ? chart.data : [];
+
+  if (!data.length) {
+    return `This chart ("${chart.title}") contains data that I can analyze once the AI service is connected. For now, the chart displays the visual breakdown above.`;
+  }
+
+  // Detect value key from data
+  const sample = data[0] || {};
+  const valueKey = Object.keys(sample).find(
+    (k) => typeof sample[k] === "number" && !["id"].includes(k)
+  );
+  const nameKey = Object.keys(sample).find(
+    (k) => typeof sample[k] === "string"
+  ) || Object.keys(sample)[0];
+
+  if (valueKey) {
+    const sorted = [...data].sort((a, b) => (b[valueKey] || 0) - (a[valueKey] || 0));
+    const highest = sorted[0];
+    const lowest = sorted[sorted.length - 1];
+    const total = sorted.reduce((s, d) => s + (d[valueKey] || 0), 0);
+
+    if (q.includes("highest") || q.includes("lowest") || q.includes("compare") || q.includes("top") || q.includes("bottom") || q.includes("max") || q.includes("min")) {
+      return `**Highest:** ${highest[nameKey]} at **${highest[valueKey]}** (${((highest[valueKey] / total) * 100).toFixed(1)}% of total)\n\n**Lowest:** ${lowest[nameKey]} at **${lowest[valueKey]}** (${((lowest[valueKey] / total) * 100).toFixed(1)}% of total)\n\nDifference: **${(highest[valueKey] - lowest[valueKey]).toFixed(1)}** (${((highest[valueKey] / lowest[valueKey])).toFixed(1)}x).`;
+    }
+
+    if (q.includes("total") || q.includes("sum")) {
+      return `The total across all segments is **${total.toFixed(1)}**.`;
+    }
+
+    if (q.includes("average") || q.includes("avg") || q.includes("mean")) {
+      return `The average value is **${(total / data.length).toFixed(1)}** across ${data.length} segments.`;
+    }
+
+    if (q.includes("break") || q.includes("detail") || q.includes("list") || q.includes("all")) {
+      const lines = sorted.map(
+        (d, i) => `${i + 1}. **${d[nameKey]}:** ${d[valueKey]} (${((d[valueKey] / total) * 100).toFixed(1)}%)`
+      );
+      return `**${chart.title} breakdown:**\n\n${lines.join("\n")}`;
+    }
+
+    // Default summary
+    return `**${chart.title}** has ${data.length} segments. **${highest[nameKey]}** leads at **${highest[valueKey]}** (${((highest[valueKey] / total) * 100).toFixed(1)}%), while **${lowest[nameKey]}** is the smallest at **${lowest[valueKey]}** (${((lowest[valueKey] / total) * 100).toFixed(1)}%). Total: **${total.toFixed(1)}**.`;
+  }
+
+  return `This chart shows "${chart.title}" with ${data.length} data points. Connect the AI service for deeper analysis.`;
+};
+
 export default function ChartModal({ chart, onClose }) {
   const { colors: globalColors, colorTemplate, setColorTemplate, COLOR_TEMPLATES, mode } = useTheme();
   const [input, setInput] = useState("");
@@ -379,9 +428,11 @@ RULES:
         setMessages((prev) => [...prev, { role: "ai", text: reply }]);
       } catch (err) {
         console.error("ChartModal AI error:", err);
+        // Fallback: generate a local response from chart data
+        const fallback = buildLocalChartReply(text, chart);
         setMessages((prev) => [
           ...prev,
-          { role: "ai", text: "Sorry, I couldn't reach the AI service. Please try again." },
+          { role: "ai", text: fallback },
         ]);
       }
       setLoading(false);
